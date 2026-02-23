@@ -4,36 +4,6 @@ import { useAuth } from "../../context/AuthContext";
 import SignInCard from "../../components/signin/SignInCard";
 
 // Mock 数据
-const mockCommunityDivinations = [
-  {
-    id: "div_001",
-    question: "我该跳槽吗？",
-    layout: "三位一体占卜",
-    author: "小星",
-    likes: 324,
-    comments: 67,
-    time: "3天前"
-  },
-  {
-    id: "div_002", 
-    question: "今年的爱情运如何？",
-    layout: "凯尔特十字",
-    author: "月光",
-    likes: 156,
-    comments: 23,
-    time: "5天前"
-  },
-  {
-    id: "div_003",
-    question: "如何改善人际关系？",
-    layout: "五牌十字",
-    author: "清风",
-    likes: 89,
-    comments: 12,
-    time: "1周前"
-  }
-];
-
 const mockRecentDivinations = [
   {
     id: "div_004",
@@ -61,10 +31,6 @@ function NotLoggedInLandingPage() {
     navigate("/divination");
   };
 
-  const handleViewCommunity = () => {
-    navigate("/community");
-  };
-
   return (
     <div className="landing-page">
       {/* Hero 区域 */}
@@ -84,13 +50,6 @@ function NotLoggedInLandingPage() {
               onClick={handleStartDivination}
             >
               开始占卜
-            </button>
-            <button 
-              type="button" 
-              className="btn-ghost" 
-              onClick={handleViewCommunity}
-            >
-              了解社区
             </button>
           </div>
         </div>
@@ -120,26 +79,6 @@ function NotLoggedInLandingPage() {
             <h3>个人占卜追踪</h3>
             <p>记录你的占卜历程，见证成长轨迹</p>
           </div>
-        </div>
-      </div>
-
-      {/* 社区展示 */}
-      <div className="community-showcase">
-        <h2 className="section-title">社区精选占卜</h2>
-        <div className="community-cards">
-          {mockCommunityDivinations.map((divination) => (
-            <div key={divination.id} className="community-card">
-              <h3>{divination.question}</h3>
-              <p className="community-meta">
-                {divination.layout} · {divination.author}
-              </p>
-              <div className="community-stats">
-                <span>👍 {divination.likes}</span>
-                <span>💬 {divination.comments}</span>
-                <span>🕐 {divination.time}</span>
-              </div>
-            </div>
-          ))}
         </div>
       </div>
     </div>

@@ -1,47 +1,27 @@
-import React, { useState } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useDivinationChain } from "../../context/DivinationChainContext";
 import { useTarotHistory } from "../../hooks/useTarotHistory";
 import { getCardImageUrl } from "../../lib/tarotImageUtils";
+import { generateInterpretation, inferCategory } from "../../lib/card-reader";
+import { generateOverallInterpretationWithDeepSeek } from "../../lib/deepseek";
+import { DIVINATION_LAYOUTS } from "../../data/divination_layouts";
+import { tarotInterpretations } from "../../data/tarot_interpretations";
 import type { TarotReadingRecord } from "../../types/tarot";
 
 export default function Step4Result() {
   const { 
     currentChain, 
-    question, 
-    generateAdvancedSuggestion, 
-    completeChain, 
+    question,
+    selectedSpread,
     prevStep,
     resetChain,
-    goToStep,
-    setQuestion
   } = useDivinationChain();
   const { saveRecord } = useTarotHistory();
   
-  const [showAdvancedSuggestion, setShowAdvancedSuggestion] = useState(false);
-  const [advancedSuggestion, setAdvancedSuggestion] = useState("");
   const [selectedCard, setSelectedCard] = useState<any>(null);
   const [saveMessage, setSaveMessage] = useState("");
-
-  const handleAdvancedDivination = () => {
-    const suggestion = generateAdvancedSuggestion();
-    setAdvancedSuggestion(suggestion);
-    setShowAdvancedSuggestion(true);
-  };
-
-  const handleAcceptAdvanced = () => {
-    // 这里会进入第二层占卜
-    console.log("开始进阶占卜:", advancedSuggestion);
-    // 保存进阶问题
-    setQuestion(advancedSuggestion);
-    // 跳转到 Step 3（洗牌和抽牌）
-    goToStep(3);
-    // 关闭进阶建议框
-    setShowAdvancedSuggestion(false);
-  };
-
-  const handleRejectAdvanced = () => {
-    setShowAdvancedSuggestion(false);
-  };
+  const [aiOverall, setAiOverall] = useState<string | null>(null);
+  const [loadingAi, setLoadingAi] = useState(false);
 
   const handleComplete = () => {
     // 保存到历史记录
@@ -127,13 +107,130 @@ export default function Step4Result() {
   }
 
   const latestLayer = currentChain.layers[currentChain.layers.length - 1];
+  
+  // 显示所有牌（不限制数量）
+  const displayCards = latestLayer.cards;
+  
+  // 推断类别
+  const category = useMemo(() => inferCategory(question), [question]);
+  
+  // 生成核心洞察（使用前3张牌生成，但显示所有牌）
+  const cardsForInsight = useMemo(() => {
+    const mainCards = displayCards.slice(0, Math.min(3, displayCards.length));
+    return mainCards.map(c => ({
+      id: c.id || 0,
+      name_cn: c.name,
+      name_en: c.nameEn || "",
+      meaning: c.meaning,
+      keywords: c.keywords,
+      isReversed: c.isReversed,
+      orientation: c.isReversed ? "逆位" as const : "正位" as const,
+      meaning_upright: c.meaning,
+      meaning_reversed: c.meaning,
+      keywords_upright: c.keywords,
+      keywords_reversed: c.keywords,
+      description: c.meaning,
+      lucky_number: 0,
+      category: "major" as const,
+      number: 0,
+      image_url: "",
+    }));
+  }, [displayCards]);
+  
+  // 辅助函数：将英文牌名转换为tarot_interpretations的key格式
+  const getCardKey = (nameEn: string): string => {
+    if (!nameEn) return "";
+    // 将 "The Fool" -> "fool", "The Magician" -> "magician", "Wheel of Fortune" -> "wheel_of_fortune" 等
+    let key = nameEn.toLowerCase()
+      .replace(/^the\s+/, '')  // 移除开头的 "The "
+      .replace(/\s+/g, '_')    // 空格替换为下划线
+      .replace(/[^a-z_]/g, ''); // 移除非字母字符
+    
+    // 特殊处理：确保匹配tarot_interpretations.ts中的key格式
+    // 例如 "high priestess" -> "high_priestess", "hanged man" -> "hanged_man"
+    return key;
+  };
+
+  // 辅助函数：将位置映射到past/present/future
+  const getPositionType = (position: string): "past" | "present" | "future" => {
+    const lowerPosition = position.toLowerCase();
+    if (lowerPosition.includes("过去") || lowerPosition.includes("past")) {
+      return "past";
+    }
+    if (lowerPosition.includes("现在") || lowerPosition.includes("当前") || lowerPosition.includes("present")) {
+      return "present";
+    }
+    if (lowerPosition.includes("未来") || lowerPosition.includes("future")) {
+      return "future";
+    }
+    // 默认返回present
+    return "present";
+  };
+
+  // 本地整体解读（DeepSeek 未配置或失败时的兜底）
+  const overallInterpretationLocal = useMemo(() => {
+    if (displayCards.length === 0) return "";
+    const interpretations: string[] = [];
+    displayCards.forEach((card) => {
+      const cardKey = getCardKey(card.nameEn || "");
+      const positionType = getPositionType(card.position);
+      const cardInterpretation = (tarotInterpretations as any)[cardKey];
+      if (cardInterpretation && cardInterpretation[positionType]) {
+        const interpretation = cardInterpretation[positionType];
+        if (interpretation.phenomenon && interpretation.insight) {
+          interpretations.push(`${interpretation.phenomenon}\n\n${interpretation.insight}`);
+        }
+      }
+    });
+    return interpretations.length === 0 ? "" : interpretations.join("\n\n");
+  }, [displayCards]);
+
+  // 优先使用 DeepSeek 生成的整体解读
+  const overallInterpretation = aiOverall ?? overallInterpretationLocal;
+
+  // 进入结果页时请求 DeepSeek 生成整体解读（API 未配置则静默跳过）
+  useEffect(() => {
+    if (displayCards.length === 0 || !selectedSpread) return;
+    const layout = DIVINATION_LAYOUTS[selectedSpread];
+    if (!layout) return;
+
+    setLoadingAi(true);
+    setAiOverall(null);
+    generateOverallInterpretationWithDeepSeek({
+      spreadName: layout.name,
+      question,
+      cards: displayCards.map((c) => ({
+        position: c.position,
+        name_cn: c.name,
+        name_en: c.nameEn ?? undefined,
+        orientation: c.isReversed ? "逆位" : "正位",
+        meaning: c.meaning,
+        keywords: c.keywords || [],
+      })),
+    })
+      .then((text) => {
+        if (text) setAiOverall(text);
+      })
+      .finally(() => setLoadingAi(false));
+  }, [displayCards, selectedSpread, question]);
+
+  // 生成核心洞察（一句有力量的话）
+  const coreInsight = useMemo(() => {
+    if (cardsForInsight.length === 0) return "";
+    return generateInterpretation({
+      spread: selectedSpread || "",
+      category,
+      cards: cardsForInsight,
+      question,
+    });
+  }, [selectedSpread, category, question, cardsForInsight]);
 
   return (
     <div className="step-content">
       <div className="step-header">
         <h2 className="step-title">占卜结果</h2>
         <p className="step-subtitle">
-          塔罗为你指引方向 · 问题：{question}
+          塔罗为你指引方向{question ? ` · 问题：${question}` : " · 通用解读"}
         </p>
       </div>
 
@@ -144,110 +241,103 @@ export default function Step4Result() {
           <span className="result-type">{latestLayer.divinationType}</span>
         </div>
 
+        {/* 整体解读 */}
+        {(overallInterpretation || coreInsight || loadingAi) && (
+          <div className="overall-reading-new">
+            <h3 className="reading-title-new">
+              {displayCards.length}张牌的整体解读
+            </h3>
+            {loadingAi && (
+              <div className="reading-content-new reading-loading">
+                <p className="reading-analysis">正在生成整体解读…</p>
+              </div>
+            )}
+            {!loadingAi && overallInterpretation && (
+              <div className="reading-content-new">
+                <p className="reading-analysis">{overallInterpretation}</p>
+              </div>
+            )}
+            {/* 核心洞察 */}
+            {coreInsight && (
+              <div className="core-insight-inline">
+                <span className="insight-icon">💡</span>
+                <span className="insight-label">核心洞察：</span>
+                <span className="insight-text-inline">{coreInsight}</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 显示所有牌 */}
         <div className="cards-result">
-          {latestLayer.cards.map((card, index) => (
-            <div key={index} className="result-card enhanced" onClick={() => handleCardClick(card)}>
-              {/* 塔罗牌图片背景 */}
-              <div 
-                className="card-background" 
-                style={{
-                  backgroundImage: `url(${getCardImageUrl(card.id || 0, card.nameEn || "")})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  opacity: 0.25
-                }} 
-              />
-              
-              {/* 遮罩层，确保文字可读 */}
+          {displayCards.map((card, index) => (
+            <div 
+              key={index} 
+              className="result-card enhanced" 
+              onClick={() => handleCardClick(card)}
+              style={{
+                backgroundImage: `url(${getCardImageUrl(card.id || 0, card.nameEn || "")})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat'
+              }}
+            >
+              {/* 半透明遮罩层，确保文字可读 */}
               <div className="card-overlay" />
               
+              {/* 卡片内容 */}
               <div className="card-content">
+                {/* 1. 牌名和英文名（大字，顶部） */}
                 <div className="card-header">
                   <h4 className="card-name">
                     {card.name}
                     <span className="card-name-en">({card.nameEn})</span>
                   </h4>
+                </div>
+                
+                {/* 2. 正/逆位标记（不同颜色区分） */}
+                <div className="card-orientation-wrapper">
                   <span className={`card-orientation ${card.isReversed ? 'reversed' : 'upright'}`}>
                     {card.isReversed ? '逆位' : '正位'}
                   </span>
                 </div>
                 
+                {/* 3. 在占卜中的位置 */}
                 <div className="card-position">{card.position}</div>
                 
+                {/* 4. 快速解读（2-3句话） */}
                 <div className="card-meaning">{card.meaning}</div>
                 
-                <div className="card-keywords">
-                  {card.keywords.map((keyword, i) => (
-                    <span key={i} className="keyword">{keyword}</span>
-                  ))}
-                </div>
+                {/* 5. 关键词（3-5个） */}
+                {card.keywords && card.keywords.length > 0 && (
+                  <div className="card-keywords">
+                    {card.keywords.slice(0, 5).map((keyword, i) => (
+                      <span key={i} className="keyword">{keyword}</span>
+                    ))}
+                  </div>
+                )}
                 
+                {/* 6. 数字学信息（简短） */}
                 <div className="card-numerology">
                   <span className="numerology-label">数字学：</span>
-                  <span className="numerology-value">{card.nameEn.length % 9 || 9}</span>
+                  <span className="numerology-value">{card.nameEn ? (card.nameEn.length % 9 || 9) : '—'}</span>
                 </div>
                 
-                <button className="detail-button" onClick={(e) => { e.stopPropagation(); handleCardClick(card); }}>
+                {/* 7. 点击"查看完整解读"可打开详解面板 */}
+                <button 
+                  className="detail-button" 
+                  onClick={(e) => { 
+                    e.stopPropagation(); 
+                    handleCardClick(card); 
+                  }}
+                >
                   查看完整解读
                 </button>
               </div>
             </div>
           ))}
         </div>
-
-        <div className="overall-reading">
-          <h3>整体解读</h3>
-          <p>{latestLayer.reading}</p>
-        </div>
       </div>
-      {/* 进阶建议 - 简化版 */}
-      {!showAdvancedSuggestion && currentChain.layers.length === 1 && (
-        <div className="advanced-suggestion">
-          <h3>✨ 我有个有趣的建议</h3>
-          <p>{generateAdvancedSuggestion()}</p>
-          <div className="modal-actions">
-            <button 
-              type="button" 
-              className="primary-button"
-              onClick={handleAdvancedDivination}
-            >
-              同意深入
-            </button>
-            <button 
-              type="button" 
-              className="btn-ghost"
-              onClick={handleRejectAdvanced}
-            >
-              暂时不了
-            </button>
-          </div>
-        </div>
-      )}
-
-      {showAdvancedSuggestion && (
-        <div className="advanced-modal">
-          <div className="modal-content">
-            <h3>💫 进阶建议</h3>
-            <p className="suggestion-text">{advancedSuggestion}</p>
-            <div className="modal-actions">
-              <button 
-                type="button" 
-                className="primary-button"
-                onClick={handleAcceptAdvanced}
-              >
-                同意深入
-              </button>
-              <button 
-                type="button" 
-                className="btn-ghost"
-                onClick={handleRejectAdvanced}
-              >
-                暂时不了
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* 牌卡详情模态框 */}
       {selectedCard && (
@@ -310,7 +400,6 @@ export default function Step4Result() {
                 <div className="detail-section">
                   <h4>完整解读</h4>
                   <p className="full-meaning">
-                    这是{selectedCard.name}的完整解读内容...
                     {selectedCard.isReversed ? 
                       '逆位代表着挑战、阻碍或内在冲突，需要你特别关注这个方面的成长。' : 
                       '正位代表着顺利、和谐或外在机遇，是你当前可以积极利用的能量。'

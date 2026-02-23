@@ -1,11 +1,14 @@
 {
   "name": "cursor_learning",
   "version": "1.0.0",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "download-images": "node scripts/downloadTarotImages.js",
+    "test-connection": "node scripts/testConnection.js"
   },
   "keywords": [],
   "author": "",
@@ -21,6 +24,7 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@types/react-router-dom": "^5.3.3",
+    "@vitejs/plugin-legacy": "^7.2.1",
     "@vitejs/plugin-react-swc": "^4.2.3",
     "typescript": "^5.9.3",
     "vite": "^7.3.1"

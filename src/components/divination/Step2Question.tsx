@@ -1,117 +1,115 @@
 import React, { useState } from "react";
 import { useDivinationChain } from "../../context/DivinationChainContext";
-import { QuestionInput } from "../tarot/QuestionInput";
+import { DIVINATION_LAYOUTS } from "../../data/divination_layouts";
 
+/**
+ * Step 2: 输入问题（可选）
+ * 用户可以输入具体问题，也可以跳过获取通用解读
+ */
 export default function Step2Question() {
-  const { question, setQuestion, selectedType, prevStep, nextStep } = useDivinationChain();
+  const { question, setQuestion, selectedSpread, prevStep, nextStep } = useDivinationChain();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // 获取当前牌阵的问题建议
+  const questionSuggestions = selectedSpread 
+    ? (DIVINATION_LAYOUTS[selectedSpread]?.questionExamples || [])
+    : [];
 
   const handleBack = () => {
     prevStep();
   };
 
   const handleSubmit = async () => {
-    if (!question.trim()) return;
-    
     setIsSubmitting(true);
     // 模拟提交延迟
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 300));
     setIsSubmitting(false);
     nextStep();
   };
 
-  const getSelectedTypeName = () => {
-    const typeNames: Record<string, string> = {
-      single: "单牌占卜",
-      trinity: "三位一体",
-      five_cross: "五牌十字",
-      celtic_cross: "凯尔特十字",
-      love: "爱情占卜",
-    };
-    return typeNames[selectedType] || "未知类型";
+  const handleSkip = () => {
+    setQuestion(null);
+    nextStep();
+  };
+
+  const handleSelectSuggestion = (suggestion: string) => {
+    setQuestion(suggestion);
   };
 
   return (
     <div className="step-content">
       <div className="step-header">
-        <h2 className="step-title">输入你的问题</h2>
+        <h2 className="step-title">输入问题（可选）</h2>
         <p className="step-subtitle">
-          清晰描述你想了解的问题 · 已选择：{getSelectedTypeName()}
+          你可以输入具体问题，也可以跳过获取通用解读
         </p>
       </div>
 
       <div className="question-section">
-        <div className="question-guidance">
-          <h3>如何提出一个好问题？</h3>
-          <ul>
-            <li>✅ 具体明确：避免模糊的问题</li>
-            <li>✅ 关注自己：问"我该如何..."而不是"他是否会..."</li>
-            <li>✅ 开放式：选择"如何"、"什么"而非是否题</li>
-            <li>✅ 正向导向：关注解决方案而非问题本身</li>
-          </ul>
-        </div>
-
         <div className="question-input-section">
           <div className="question-input">
             <label className="question-label">
               请输入你此刻最想占卜的问题：
-              <span className="question-label-sub">（尽量具体，专注一件事）</span>
+              <span className="question-label-sub">（可选，不输入将获得通用解读）</span>
             </label>
             <div className="question-input-row">
               <input
                 className="question-input-field"
                 type="text"
                 placeholder="例如：我该如何改善当前的工作状况？"
-                value={question}
-                onChange={(e) => setQuestion(e.target.value)}
+                value={question || ""}
+                onChange={(e) => setQuestion(e.target.value || null)}
               />
             </div>
-          </div>
-        </div>
-
-        <div className="question-examples">
-          <h4>问题示例：</h4>
-          <div className="example-questions">
-            <button 
-              type="button" 
-              className="example-question"
-              onClick={() => setQuestion("我该如何平衡工作与生活？")}
-            >
-              我该如何平衡工作与生活？
-            </button>
-            <button 
-              type="button" 
-              className="example-question"
-              onClick={() => setQuestion("什么在阻碍我的个人成长？")}
-            >
-              什么在阻碍我的个人成长？
-            </button>
-            <button 
-              type="button" 
-              className="example-question"
-              onClick={() => setQuestion("我该如何改善人际关系？")}
-            >
-              我该如何改善人际关系？
-            </button>
+            <p className="question-hint">
+              提示：你可以不输入问题，我们会根据牌阵给出通用解读
+            </p>
+            
+            {/* 问题建议 */}
+            {questionSuggestions.length > 0 && (
+              <div className="question-suggestions">
+                <p className="suggestions-title">常见问题：</p>
+                <div className="suggestions-list">
+                  {questionSuggestions.map((suggestion, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      className="suggestion-item"
+                      onClick={() => handleSelectSuggestion(suggestion)}
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      <div className="step-actions">
-        <button 
-          type="button" 
+      <div className="step-actions step-actions-question">
+        <button
+          type="button"
           className="btn-ghost"
           onClick={handleBack}
         >
           上一步
         </button>
-        <button 
-          type="button" 
+        <button
+          type="button"
           className="primary-button"
           onClick={handleSubmit}
-          disabled={!question.trim() || isSubmitting}
+          disabled={isSubmitting || !(question || "").trim()}
         >
-          {isSubmitting ? "确认中..." : "开始占卜"}
+          {isSubmitting ? "确认中..." : "继续"}
+        </button>
+        <button 
+          type="button" 
+          className="btn-ghost"
+          onClick={handleSkip}
+          disabled={isSubmitting}
+        >
+          跳过，获取通用解读
         </button>
       </div>
     </div>

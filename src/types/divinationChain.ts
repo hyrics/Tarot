@@ -38,10 +38,12 @@ export interface DivinationStep {
   isActive: boolean;
 }
 
-export type DivinationType = 
-  | "single"      // 单牌占卜
-  | "trinity"     // 三位一体
-  | "five_cross"  // 五牌十字
-  | "celtic_cross" // 凯尔特十字
-  | "love"        // 爱情占卜
-  | "specialization"; // 专项占卜（第二层）
+export type DivinationType =
+  | "single"
+  | "trinity"
+  | "five_cross"
+  | "celtic_cross"
+  | "love"
+  | "career"
+  | "seven_day"
+  | "specialization";

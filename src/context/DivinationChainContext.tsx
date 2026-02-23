@@ -3,6 +3,8 @@ import type { DivinationChain, DivinationLayer, DivinationStep, DivinationType }
 import type { DivinationResult } from "../types/tarot";
 import { performDivination as runDivination } from "../lib/divination";
 
+export type CategoryType = "emotion" | "career" | "growth" | null;
+
 interface DivinationChainValue {
   // 当前占卜流程状态
   currentStep: number;
@@ -10,12 +12,14 @@ interface DivinationChainValue {
   currentChain: DivinationChain | null;
   
   // 占卜设置
+  selectedSpread: string | null; // 选中的牌阵ID
   selectedType: DivinationType;
-  question: string;
+  question: string | null; // 问题变为可选
   
   // 操作方法
+  setSelectedSpread: (spread: string) => void;
   setSelectedType: (type: DivinationType) => void;
-  setQuestion: (question: string) => void;
+  setQuestion: (question: string | null) => void;
   nextStep: () => void;
   prevStep: () => void;
   goToStep: (step: number) => void;
@@ -32,18 +36,19 @@ interface DivinationChainValue {
 }
 
 const STEPS: DivinationStep[] = [
-  { step: 1, title: "选择占卜方式", description: "选择适合你的占卜类型", isCompleted: false, isActive: true },
-  { step: 2, title: "输入问题", description: "清晰描述你想了解的问题", isCompleted: false, isActive: false },
-  { step: 3, title: "洗牌和抽牌", description: "静心等待塔罗的指引", isCompleted: false, isActive: false },
-  { step: 4, title: "查看结果", description: "解读牌面含义", isCompleted: false, isActive: false },
+  { step: 1, title: "选择牌阵", description: "选择适合你的牌阵", isCompleted: false, isActive: true },
+  { step: 2, title: "输入问题（可选）", description: "可以输入具体问题或跳过", isCompleted: false, isActive: false },
+  { step: 3, title: "抽牌", description: "静心等待塔罗的指引", isCompleted: false, isActive: false },
+  { step: 4, title: "解读", description: "解读牌面含义", isCompleted: false, isActive: false },
 ];
 
 const DivinationChainContext = createContext<DivinationChainValue | null>(null);
 
 export function DivinationChainProvider({ children }: { children: React.ReactNode }) {
   const [currentStep, setCurrentStep] = useState(1);
+  const [selectedSpread, setSelectedSpread] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<DivinationType>("trinity");
-  const [question, setQuestion] = useState("");
+  const [question, setQuestion] = useState<string | null>(null);
   const [currentChain, setCurrentChain] = useState<DivinationChain | null>(null);
 
   // 更新步骤状态
@@ -78,29 +83,30 @@ export function DivinationChainProvider({ children }: { children: React.ReactNod
     const isStepValid = useCallback((step: number) => {
       switch (step) {
         case 1:
-          return true;
+          return selectedSpread !== null;
         case 2:
-          return true;
+          return true; // 问题可选，所以总是有效
         case 3:
-          return true;
+          return selectedSpread !== null; // 需要选中牌阵才能抽牌
         case 4:
           return currentChain !== null && currentChain.layers.length > 0;
         default:
           return false;
       }
-  }, [currentChain]);
+  }, [currentChain, selectedSpread]);
 
   const performDivination = useCallback(() => {
-    if (!isStepValid(3)) return null;
+    if (!isStepValid(3) || !selectedSpread) return null;
     
-    const result = runDivination(selectedType);
+    // 使用selectedSpread作为牌阵ID
+    const result = runDivination(selectedSpread);
     return result;
-  }, [selectedType, isStepValid]);
+  }, [selectedSpread, isStepValid]);
 
   const addLayerToChain = useCallback((result: DivinationResult) => {
     const newLayer: DivinationLayer = {
       layerId: currentChain ? currentChain.layers.length + 1 : 1,
-      divinationType: selectedType,
+      divinationType: selectedSpread as DivinationType,
       cards: result.readings.map((reading: any) => ({
         id: reading.card.id,
         name: reading.card.name_cn,
@@ -126,7 +132,7 @@ export function DivinationChainProvider({ children }: { children: React.ReactNod
       const newChain: DivinationChain = {
         chainId: `chain_${Date.now()}`,
         userId: "user_001", // 从 Auth 获取
-        originalQuestion: question,
+        originalQuestion: question || "",
         layers: [newLayer],
         isPublished: false,
         likes: 0,
@@ -136,7 +142,7 @@ export function DivinationChainProvider({ children }: { children: React.ReactNod
       };
       setCurrentChain(newChain);
     }
-  }, [currentChain, selectedType, question]);
+  }, [currentChain, selectedSpread, question]);
 
   const generateAdvancedSuggestion = useCallback(() => {
     // Mock 进阶建议生成逻辑
@@ -162,8 +168,9 @@ export function DivinationChainProvider({ children }: { children: React.ReactNod
 
   const resetChain = useCallback(() => {
     setCurrentStep(1);
+    setSelectedSpread(null);
     setSelectedType("trinity");
-    setQuestion("");
+    setQuestion(null);
     setCurrentChain(null);
   }, []);
 
@@ -171,8 +178,10 @@ export function DivinationChainProvider({ children }: { children: React.ReactNod
     currentStep,
     steps,
     currentChain,
+    selectedSpread,
     selectedType,
     question,
+    setSelectedSpread,
     setSelectedType,
     setQuestion,
     nextStep,

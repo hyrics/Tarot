@@ -94,16 +94,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
           </button>
         </form>
 
-        <div className="auth-switch">
-          <span>还没有账号？</span>
-          <button 
-            type="button" 
-            className="auth-switch-button"
-            onClick={onSwitchToRegister}
-          >
-            立即注册
-          </button>
-        </div>
+        {/* 注册功能已移除 */}
       </div>
     </div>
   );

@@ -1,86 +1,101 @@
 import React, { useState, useEffect } from "react";
 import { useDivinationChain } from "../../context/DivinationChainContext";
+import { DIVINATION_LAYOUTS } from "../../data/divination_layouts";
+import { getCardImageUrl } from "../../lib/tarotImageUtils";
+import type { DivinationResult } from "../../types/tarot";
 
+/**
+ * Step 3: 抽牌
+ * 洗牌和抽取塔罗牌 - 完成后显示牌，由用户点击进入结果页
+ */
 export default function Step3Draw() {
-  const { question, selectedType, performDivination, addLayerToChain, nextStep, prevStep } = useDivinationChain();
-  const [isShuffling, setIsShuffling] = useState(false);
+  const { question, selectedSpread, performDivination, addLayerToChain, nextStep, prevStep } = useDivinationChain();
+  const [isShuffling, setIsShuffling] = useState(true); // 默认开始洗牌
   const [isDrawing, setIsDrawing] = useState(false);
-  const [showResult, setShowResult] = useState(false);
-  const [result, setResult] = useState<any>(null);
   const [flippedCards, setFlippedCards] = useState<number[]>([]);
+  const [showDrawnCards, setShowDrawnCards] = useState(false);
+  const [drawnResult, setDrawnResult] = useState<DivinationResult | null>(null);
 
-  const handleStartShuffle = async () => {
-    setIsShuffling(true);
-    setFlippedCards([]);
-    // 模拟洗牌动画时间 - 2秒
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setIsShuffling(false);
-    setIsDrawing(true);
+  // 获取当前占卜方式的牌数
+  const getCardCount = () => {
+    const layout = DIVINATION_LAYOUTS[selectedSpread || "trinity"];
+    return layout?.cardCount || 3;
   };
 
-  const handleDrawCards = async () => {
-    const divinationResult = performDivination();
-    if (divinationResult) {
-      setResult(divinationResult);
-      addLayerToChain(divinationResult);
-      
-      // 立即显示所有卡片，不再等待延迟
-      setShowResult(true);
-    }
-    setIsDrawing(false);
-  };
+  const cardCount = getCardCount();
 
-  const handleContinue = () => {
-    nextStep();
-  };
+  // 自动开始洗牌流程（仅挂载时执行一次，避免依赖变化导致定时器被反复清除）
+  useEffect(() => {
+    let shuffleTimer: NodeJS.Timeout;
+    let drawTimer: NodeJS.Timeout;
+    let flipTimers: NodeJS.Timeout[] = [];
+    let showCardsTimer: NodeJS.Timeout;
+
+    // 洗牌 1s + 抽牌 0.5s = 1.5s 后进入翻牌并展示
+    shuffleTimer = setTimeout(() => {
+      setIsShuffling(false);
+      setIsDrawing(true);
+
+      drawTimer = setTimeout(() => {
+        const divinationResult = performDivination();
+        if (divinationResult) {
+          addLayerToChain(divinationResult);
+          setDrawnResult(divinationResult);
+
+          const cardsToFlip = Array.from({ length: cardCount }, (_, i) => i);
+          cardsToFlip.forEach((_, i) => {
+            const timer = setTimeout(() => {
+              setFlippedCards(prev => [...prev, i]);
+            }, i * 150);
+            flipTimers.push(timer);
+          });
+
+          showCardsTimer = setTimeout(() => {
+            setIsDrawing(false);
+            setShowDrawnCards(true);
+          }, cardsToFlip.length * 150 + 300);
+        }
+      }, 500);
+    }, 1000);
+
+    return () => {
+      clearTimeout(shuffleTimer);
+      clearTimeout(drawTimer);
+      if (showCardsTimer) clearTimeout(showCardsTimer);
+      flipTimers.forEach(timer => clearTimeout(timer));
+    };
+    // 只依赖 cardCount；performDivination/addLayerToChain 在挂载时调用一次即可
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleBack = () => {
     prevStep();
   };
 
-  const getSelectedTypeName = () => {
-    const typeNames: Record<string, string> = {
-      single: "单牌占卜",
-      trinity: "三位一体",
-      five_cross: "五牌十字",
-      celtic_cross: "凯尔特十字",
-      love: "爱情占卜",
-    };
-    return typeNames[selectedType] || "未知类型";
+  const handleViewResult = () => {
+    nextStep();
   };
 
   return (
     <div className="step-content">
       <div className="step-header">
-        <h2 className="step-title">洗牌和抽牌</h2>
+        <h2 className="step-title">
+          {showDrawnCards ? "你的牌面" : isShuffling ? "洗牌中..." : "正在抽取塔罗牌..."}
+        </h2>
         <p className="step-subtitle">
-          静心等待塔罗的指引 · 问题：{question}
+          静心等待塔罗的指引{question ? ` · 问题：${question}` : " · 通用解读"}
         </p>
       </div>
 
       <div className="draw-area">
-        {!isShuffling && !isDrawing && !showResult && (
-          <div className="draw-prompt">
-            <div className="draw-icon">🔮</div>
-            <h3>准备开始洗牌</h3>
-            <p>请静心冥想你的问题，然后点击开始洗牌</p>
-            <button 
-              type="button" 
-              className="primary-button"
-              onClick={handleStartShuffle}
-            >
-              开始洗牌
-            </button>
-          </div>
-        )}
-
-        {isShuffling && (
+        {isShuffling && !isDrawing && (
           <div className="shuffle-animation">
             <div className="shuffle-message">
-              正在洗牌中，请静心等待...
+              <h3>洗牌中...</h3>
+              <p>请闭上眼睛，放松呼吸...</p>
             </div>
             <div className="shuffle-placeholder">
-              {[0, 1, 2].map((index) => (
+              {Array.from({ length: Math.min(cardCount, 10) }, (_, index) => (
                 <div key={index} className="card-back shuffle-card" style={{ animationDelay: `${index * 0.2}s` }}>
                   <div className="card-inner">
                     <div className="card-front">🃏</div>
@@ -92,65 +107,66 @@ export default function Step3Draw() {
           </div>
         )}
 
-        {isDrawing && !showResult && (
+        {isDrawing && !isShuffling && !showDrawnCards && (
           <div className="draw-animation">
             <div className="draw-message">
-              洗牌完成！请点击抽牌
+              <h3>正在抽取塔罗牌...</h3>
+              <p>塔罗正在为你指引方向</p>
             </div>
-            <button 
-              type="button" 
-              className="primary-button large"
-              onClick={handleDrawCards}
-            >
-              抽取塔罗牌
-            </button>
+            <div className="shuffle-placeholder">
+              {Array.from({ length: cardCount }, (_, index) => (
+                <div
+                  key={index}
+                  className={`card-back shuffle-card ${flippedCards.includes(index) ? "flipped" : ""}`}
+                  style={{ animationDelay: `${index * 0.15}s` }}
+                >
+                  <div className="card-inner">
+                    <div className="card-front">🃏</div>
+                    <div className="card-back-pattern"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
-        {showResult && result && (
-          <div className="draw-result centered-result">
-            <div className="result-preview">
-              <h3>已抽取 {Math.min(result.readings?.length || 0, 3)} 张牌</h3>
-              <div className="cards-preview">
-                {result.readings?.slice(0, 3).map((reading: any, index: number) => (
-                  <div key={index} className="mini-card">
-                    <div className="mini-card-name">{reading.card.name_cn}</div>
-                    <div className="mini-card-position">{reading.position}</div>
-                  </div>
-                ))}
-              </div>
+        {showDrawnCards && drawnResult && (
+          <div className="drawn-cards-preview">
+            <p className="drawn-cards-hint">以下是本次抽到的牌，点击下方按钮查看完整解读</p>
+            <div className="drawn-cards-list">
+              {drawnResult.readings.map((reading, index) => (
+                <div key={index} className="drawn-card-preview">
+                  <div
+                    className="drawn-card-preview-image"
+                    style={{
+                      backgroundImage: `url(${getCardImageUrl(reading.card.id, reading.card.name_en)})`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                      transform: reading.card.isReversed ? "rotate(180deg)" : "none",
+                    }}
+                  />
+                  <div className="drawn-card-preview-overlay" />
+                  <span className="drawn-card-preview-position">{reading.position}</span>
+                  <span className="drawn-card-preview-name">{reading.card.name_cn}</span>
+                </div>
+              ))}
             </div>
+            <button type="button" className="primary-button drawn-view-result-btn" onClick={handleViewResult}>
+              查看解读
+            </button>
           </div>
         )}
       </div>
 
       <div className="step-actions">
-        <button 
-          type="button" 
+        <button
+          type="button"
           className="btn-ghost"
           onClick={handleBack}
           disabled={isShuffling || isDrawing}
         >
           上一步
         </button>
-        {showResult && (
-          <button 
-            type="button" 
-            className="primary-button"
-            onClick={handleContinue}
-          >
-            查看解读
-          </button>
-        )}
-        {isDrawing && !showResult && (
-          <button 
-            type="button" 
-            className="primary-button"
-            onClick={handleDrawCards}
-          >
-            立刻查看结果
-          </button>
-        )}
       </div>
     </div>
   );

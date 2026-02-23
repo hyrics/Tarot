@@ -32,6 +32,7 @@ export interface DivinationLayout {
   description: string;
   cardCount: number;
   positions: string[];
+  questionExamples?: string[]; // 问题示例（可选）
 }
 
 /** 单张牌的解读项 */

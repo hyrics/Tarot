@@ -5,7 +5,7 @@ import StepIndicator from "../../components/divination/StepIndicator";
 import { BackButton } from "../../components/layout/BackButton";
 
 // 将 lazy 组件放到组件外部，避免每次渲染都重新创建导致 Step 组件反复卸载/挂载
-const Step1SelectType = React.lazy(() => import("../../components/divination/Step1SelectType"));
+const Step1SelectSpread = React.lazy(() => import("../../components/divination/Step1SelectSpread"));
 const Step2Question = React.lazy(() => import("../../components/divination/Step2Question"));
 const Step3Draw = React.lazy(() => import("../../components/divination/Step3Draw"));
 const Step4Result = React.lazy(() => import("../../components/divination/Step4Result"));
@@ -31,7 +31,7 @@ export default function DivinationPage() {
       case 1:
         return (
           <React.Suspense fallback={<div>加载中...</div>}>
-            <Step1SelectType />
+            <Step1SelectSpread />
           </React.Suspense>
         );
       case 2:
@@ -55,7 +55,7 @@ export default function DivinationPage() {
       default:
         return (
           <React.Suspense fallback={<div>加载中...</div>}>
-            <Step1SelectType />
+            <Step1SelectSpread />
           </React.Suspense>
         );
     }
@@ -64,15 +64,24 @@ export default function DivinationPage() {
   return (
     <div className="divination-page">
       {/* 顶部导航 - 左中右布局 */}
-      <div className="divination-header">
-        <BackButton onClick={handleBackToHome}>返回首页</BackButton>
+      <div className="divination-header-new">
+        {/* 左侧：返回首页 */}
+        <div className="header-left">
+          <BackButton onClick={handleBackToHome} className="back-button-large">
+            ← 返回首页
+          </BackButton>
+        </div>
         
-        <div className="step-indicator-wrapper">
+        {/* 中间：进度条和步骤指示 */}
+        <div className="header-center">
           <StepIndicator />
         </div>
         
-        <div className="step-counter">
-          Step {currentStep}/4
+        {/* 右侧：Step X/4 文字显示 */}
+        <div className="header-right">
+          <div className="step-counter-new">
+            Step {currentStep}/4
+          </div>
         </div>
       </div>
 

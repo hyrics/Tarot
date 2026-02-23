@@ -2,8 +2,12 @@ import React from "react";
 import { useDivinationChain } from "../../context/DivinationChainContext";
 import { DIVINATION_LAYOUTS, LAYOUT_IDS } from "../../data/divination_layouts";
 
-export default function Step1SelectType() {
-  const { selectedType, setSelectedType, nextStep } = useDivinationChain();
+/**
+ * Step 3: 选择占卜方式
+ * 六个选项：单牌、三位一体、五牌十字、凯尔特十字、爱情、七日
+ */
+export default function Step3SelectType() {
+  const { selectedType, setSelectedType, nextStep, prevStep } = useDivinationChain();
 
   const handleTypeSelect = (type: string) => {
     setSelectedType(type as any);
@@ -33,6 +37,7 @@ export default function Step1SelectType() {
                 {layout.cardCount === 3 && '🎴'}
                 {layout.cardCount === 5 && '✋'}
                 {layout.cardCount === 6 && '💕'}
+                {layout.cardCount === 7 && '📅'}
                 {layout.cardCount === 10 && '⭐'}
               </div>
               <h3 className="type-name">{layout.name}</h3>
@@ -43,6 +48,16 @@ export default function Step1SelectType() {
             </button>
           );
         })}
+      </div>
+
+      <div className="step-actions">
+        <button 
+          type="button" 
+          className="btn-ghost"
+          onClick={prevStep}
+        >
+          上一步
+        </button>
       </div>
     </div>
   );
