@@ -88,37 +88,32 @@ export default function Step3Draw() {
       </div>
 
       <div className="draw-area">
-        {isShuffling && !isDrawing && (
-          <div className="shuffle-animation">
-            <div className="shuffle-message">
-              <h3>洗牌中...</h3>
-              <p>请闭上眼睛，放松呼吸...</p>
+        {(isShuffling || (isDrawing && !showDrawnCards)) && (
+          <div className="shuffle-draw-unified">
+            <div className="draw-message-container">
+              <div
+                className="shuffle-message phase-message"
+                aria-hidden={!isShuffling}
+                style={{ opacity: isShuffling ? 1 : 0 }}
+              >
+                <h3>洗牌中...</h3>
+                <p>请闭上眼睛，放松呼吸...</p>
+              </div>
+              <div
+                className="draw-message phase-message"
+                aria-hidden={!isDrawing || showDrawnCards}
+                style={{ opacity: isDrawing && !showDrawnCards ? 1 : 0 }}
+              >
+                <h3>正在抽取塔罗牌...</h3>
+                <p>塔罗正在为你指引方向</p>
+              </div>
             </div>
-            <div className="shuffle-placeholder">
-              {Array.from({ length: Math.min(cardCount, 10) }, (_, index) => (
-                <div key={index} className="card-back shuffle-card" style={{ animationDelay: `${index * 0.2}s` }}>
-                  <div className="card-inner">
-                    <div className="card-front">🃏</div>
-                    <div className="card-back-pattern"></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {isDrawing && !isShuffling && !showDrawnCards && (
-          <div className="draw-animation">
-            <div className="draw-message">
-              <h3>正在抽取塔罗牌...</h3>
-              <p>塔罗正在为你指引方向</p>
-            </div>
-            <div className="shuffle-placeholder">
+            <div className={`shuffle-placeholder ${isDrawing ? "draw-phase" : ""}`}>
               {Array.from({ length: cardCount }, (_, index) => (
                 <div
                   key={index}
-                  className={`card-back shuffle-card ${flippedCards.includes(index) ? "flipped" : ""}`}
-                  style={{ animationDelay: `${index * 0.15}s` }}
+                  className={`card-back shuffle-card ${isDrawing ? "draw-phase" : ""} ${flippedCards.includes(index) ? "flipped" : ""}`}
+                  style={{ animationDelay: isShuffling ? `${index * 0.2}s` : undefined }}
                 >
                   <div className="card-inner">
                     <div className="card-front">🃏</div>

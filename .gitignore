@@ -29,3 +29,5 @@ yarn-error.log*
 
 # 下载的塔罗牌图片（可选，如果不想提交到git）
 # public/images/tarot/*.jpg
+
+src/utils/generateToken.ts

@@ -2523,6 +2523,62 @@ body::after {
   margin-bottom: 2rem;
 }
 
+/* 洗牌与抽牌统一容器，避免切换时跳动 */
+.shuffle-draw-unified {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2rem;
+  width: 100%;
+}
+
+/* 消息区域：两段文案叠放，用 opacity 做交叉淡入淡出 */
+.draw-message-container {
+  position: relative;
+  min-height: 5.5rem;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.draw-message-container .phase-message {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+
+/* 未显示时完全隐藏，避免与当前文案重合 */
+.draw-message-container .phase-message[aria-hidden="true"] {
+  visibility: hidden;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.draw-message-container .phase-message[aria-hidden="false"] {
+  visibility: visible;
+  z-index: 1;
+}
+
+.draw-message-container .phase-message h3,
+.draw-message-container .phase-message p {
+  margin: 0;
+  display: block;
+  line-height: 1.4;
+}
+
 .shuffle-animation,
 .draw-animation {
   text-align: center;
@@ -2561,19 +2617,32 @@ body::after {
 .shuffle-placeholder {
   display: flex;
   justify-content: center;
-  gap: 1rem;
+  align-items: center;
+  gap: 1.25rem;
   margin: 2rem 0;
+  flex-wrap: wrap;
 }
 
 .shuffle-card {
   width: 80px;
   height: 120px;
   animation: shuffleMove 2s ease-in-out infinite;
+  transition: transform 0.5s ease, opacity 0.35s ease;
 }
 
 .shuffle-card:nth-child(1) { animation-delay: 0s; }
 .shuffle-card:nth-child(2) { animation-delay: 0.2s; }
 .shuffle-card:nth-child(3) { animation-delay: 0.4s; }
+
+/* 抽牌阶段：先停止洗牌动画，牌面收束后再翻牌 */
+.shuffle-card.draw-phase {
+  animation: none;
+  transform: translateX(0) rotate(0deg);
+}
+
+.shuffle-placeholder.draw-phase .shuffle-card {
+  transition: transform 0.6s ease-in-out, opacity 0.35s ease;
+}
 
 @keyframes shuffleMove {
   0%, 100% { transform: translateX(0) rotate(0deg); }
@@ -2590,6 +2659,7 @@ body::after {
   flex-direction: column;
   align-items: center;
   gap: 1.5rem;
+  animation: drawnPreviewIn 0.5s ease-out both;
 }
 
 .drawn-cards-hint {
@@ -2597,6 +2667,23 @@ body::after {
   font-size: 0.95rem;
   color: var(--text-secondary);
   margin-bottom: 0.5rem;
+  animation: drawnFadeIn 0.4s ease-out 0.1s both;
+}
+
+@keyframes drawnPreviewIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes drawnFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .drawn-cards-list {
@@ -2614,6 +2701,29 @@ body::after {
   border: 2px solid var(--gold);
   overflow: hidden;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  animation: drawnCardIn 0.5s ease-out both;
+}
+
+.drawn-cards-list .drawn-card-preview:nth-child(1) { animation-delay: 0.15s; }
+.drawn-cards-list .drawn-card-preview:nth-child(2) { animation-delay: 0.25s; }
+.drawn-cards-list .drawn-card-preview:nth-child(3) { animation-delay: 0.35s; }
+.drawn-cards-list .drawn-card-preview:nth-child(4) { animation-delay: 0.45s; }
+.drawn-cards-list .drawn-card-preview:nth-child(5) { animation-delay: 0.55s; }
+.drawn-cards-list .drawn-card-preview:nth-child(6) { animation-delay: 0.65s; }
+.drawn-cards-list .drawn-card-preview:nth-child(7) { animation-delay: 0.75s; }
+.drawn-cards-list .drawn-card-preview:nth-child(8) { animation-delay: 0.85s; }
+.drawn-cards-list .drawn-card-preview:nth-child(9) { animation-delay: 0.95s; }
+.drawn-cards-list .drawn-card-preview:nth-child(10) { animation-delay: 1.05s; }
+
+@keyframes drawnCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .drawn-card-preview-image {
@@ -2654,6 +2764,7 @@ body::after {
 .drawn-view-result-btn {
   margin-top: 1rem;
   min-width: 160px;
+  animation: drawnFadeIn 0.4s ease-out 0.5s both;
 }
 
 /* 隐藏的登录按钮（保留 DOM，仅视觉隐藏） */
@@ -4208,4 +4319,266 @@ body::after {
     width: 100%;
     max-width: 280px;
   }
+}
+
+/* ═══════════════════════════════════════
+   情绪确认页 / 引导页 / 确认页
+   ═══════════════════════════════════════ */
+
+.emotion-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+/* ── 输入页 ── */
+.emotion-input-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: 420px;
+  width: 100%;
+}
+
+.emotion-lead {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin: 0;
+  animation: drawnFadeIn 0.6s ease-out both;
+}
+
+.emotion-title {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  color: var(--gold);
+  margin: 0.25rem 0 0.5rem;
+  font-weight: 700;
+  animation: drawnFadeIn 0.6s ease-out 0.15s both;
+}
+
+.emotion-subtitle {
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin: 0 0 1.5rem;
+  animation: drawnFadeIn 0.6s ease-out 0.3s both;
+}
+
+.emotion-inputs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  width: 100%;
+  margin-bottom: 1.5rem;
+  animation: drawnFadeIn 0.5s ease-out 0.45s both;
+}
+
+.emotion-word-input {
+  width: 100px;
+  padding: 0.65rem 0.75rem;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--text-bright);
+  background: rgba(26, 31, 58, 0.6);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.emotion-word-input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 12px rgba(229, 184, 71, 0.25);
+}
+
+.emotion-word-input::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.5;
+  font-size: 0.85rem;
+}
+
+.emotion-sep {
+  font-family: var(--font-body);
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+  user-select: none;
+}
+
+.emotion-next-btn {
+  min-width: 180px;
+  animation: drawnFadeIn 0.5s ease-out 0.6s both;
+}
+
+.emotion-guide-link {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-top: 1rem;
+  padding: 0.5rem;
+  transition: color 0.2s ease;
+  animation: drawnFadeIn 0.5s ease-out 0.7s both;
+}
+
+.emotion-guide-link:hover {
+  color: var(--gold);
+  text-decoration: underline;
+}
+
+/* ── 引导页 ── */
+.emotion-guide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  max-width: 480px;
+  width: 100%;
+}
+
+.guide-question {
+  width: 100%;
+  text-align: left;
+}
+
+.guide-label {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--text-bright);
+  margin: 0 0 0.6rem;
+  font-weight: 600;
+}
+
+.guide-word-input {
+  width: 100%;
+  text-align: left;
+}
+
+.guide-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.guide-option {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  padding: 0.45rem 1rem;
+  border-radius: 20px;
+  border: 1.5px solid var(--border);
+  background: rgba(26, 31, 58, 0.4);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.guide-option:hover {
+  border-color: var(--gold);
+  color: var(--text-bright);
+}
+
+.guide-option.active {
+  background: rgba(229, 184, 71, 0.15);
+  border-color: var(--gold);
+  color: var(--gold);
+  font-weight: 600;
+}
+
+.guide-preview {
+  text-align: center;
+  padding: 1.25rem;
+  background: rgba(229, 184, 71, 0.08);
+  border: 1px solid rgba(229, 184, 71, 0.2);
+  border-radius: 12px;
+  width: 100%;
+}
+
+.guide-preview-label {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin: 0 0 0.5rem;
+}
+
+.guide-preview-words {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.preview-word {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  color: var(--gold);
+  font-weight: 700;
+}
+
+.preview-sep {
+  font-family: var(--font-body);
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+}
+
+.guide-preview-hint {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin: 0.5rem 0 0;
+  opacity: 0.7;
+}
+
+/* ── 确认页 ── */
+.emotion-confirm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  max-width: 420px;
+  width: 100%;
+  animation: drawnPreviewIn 0.4s ease-out both;
+}
+
+.confirm-words {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin: 0.5rem 0 0.75rem;
+}
+
+.confirm-word {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  color: var(--gold);
+  font-weight: 700;
+  padding: 0.5rem 1.25rem;
+  border: 1.5px solid rgba(229, 184, 71, 0.35);
+  border-radius: 10px;
+  background: rgba(229, 184, 71, 0.08);
+}
+
+.confirm-ask {
+  font-family: var(--font-body);
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  margin: 0.5rem 0 0;
+}
+
+/* 确认页按钮间距 */
+.emotion-confirm .step-actions {
+  gap: 1.5rem;
+  margin-top: 0.75rem;
 }

@@ -36,17 +36,16 @@ interface DivinationChainValue {
 }
 
 const STEPS: DivinationStep[] = [
-  { step: 1, title: "选择牌阵", description: "选择适合你的牌阵", isCompleted: false, isActive: true },
-  { step: 2, title: "输入问题（可选）", description: "可以输入具体问题或跳过", isCompleted: false, isActive: false },
-  { step: 3, title: "抽牌", description: "静心等待塔罗的指引", isCompleted: false, isActive: false },
-  { step: 4, title: "解读", description: "解读牌面含义", isCompleted: false, isActive: false },
+  { step: 1, title: "情绪确认", description: "用三个词概括你的心声", isCompleted: false, isActive: true },
+  { step: 2, title: "抽牌", description: "静心等待塔罗的指引", isCompleted: false, isActive: false },
+  { step: 3, title: "解读", description: "解读牌面含义", isCompleted: false, isActive: false },
 ];
 
 const DivinationChainContext = createContext<DivinationChainValue | null>(null);
 
 export function DivinationChainProvider({ children }: { children: React.ReactNode }) {
   const [currentStep, setCurrentStep] = useState(1);
-  const [selectedSpread, setSelectedSpread] = useState<string | null>(null);
+  const [selectedSpread, setSelectedSpread] = useState<string | null>("trinity");
   const [selectedType, setSelectedType] = useState<DivinationType>("trinity");
   const [question, setQuestion] = useState<string | null>(null);
   const [currentChain, setCurrentChain] = useState<DivinationChain | null>(null);
@@ -63,7 +62,7 @@ export function DivinationChainProvider({ children }: { children: React.ReactNod
   const steps = updateStepsStatus(currentStep);
 
   const nextStep = useCallback(() => {
-    if (currentStep < 4) {
+    if (currentStep < 3) {
       setCurrentStep(currentStep + 1);
     }
   }, [currentStep]);
@@ -75,7 +74,7 @@ export function DivinationChainProvider({ children }: { children: React.ReactNod
   }, [currentStep]);
 
   const goToStep = useCallback((step: number) => {
-    if (step >= 1 && step <= 4) {
+    if (step >= 1 && step <= 3) {
       setCurrentStep(step);
     }
   }, []);
@@ -83,12 +82,10 @@ export function DivinationChainProvider({ children }: { children: React.ReactNod
     const isStepValid = useCallback((step: number) => {
       switch (step) {
         case 1:
-          return selectedSpread !== null;
+          return true;
         case 2:
-          return true; // 问题可选，所以总是有效
+          return selectedSpread !== null;
         case 3:
-          return selectedSpread !== null; // 需要选中牌阵才能抽牌
-        case 4:
           return currentChain !== null && currentChain.layers.length > 0;
         default:
           return false;
@@ -96,12 +93,10 @@ export function DivinationChainProvider({ children }: { children: React.ReactNod
   }, [currentChain, selectedSpread]);
 
   const performDivination = useCallback(() => {
-    if (!isStepValid(3) || !selectedSpread) return null;
-    
-    // 使用selectedSpread作为牌阵ID
+    if (!selectedSpread) return null;
     const result = runDivination(selectedSpread);
     return result;
-  }, [selectedSpread, isStepValid]);
+  }, [selectedSpread]);
 
   const addLayerToChain = useCallback((result: DivinationResult) => {
     const newLayer: DivinationLayer = {
@@ -168,7 +163,7 @@ export function DivinationChainProvider({ children }: { children: React.ReactNod
 
   const resetChain = useCallback(() => {
     setCurrentStep(1);
-    setSelectedSpread(null);
+    setSelectedSpread("trinity");
     setSelectedType("trinity");
     setQuestion(null);
     setCurrentChain(null);
