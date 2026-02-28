@@ -16,18 +16,13 @@ const translations: Record<string, Record<Lang, string>> = {
   "feature1.title":       { zh: "78张经典塔罗牌",                    en: "78 Classic Tarot Cards" },
   "feature1.desc":        { zh: "每一张牌照见的都不是命运，是你自己不敢承认的那部分", en: "Each card reveals not fate, but the part of yourself you dare not admit" },
   "feature2.title":       { zh: "过去-现在-未来三张牌",               en: "Past · Present · Future" },
-  "feature2.desc":        { zh: "不是直接给你答案，是问你三个问题，让你自己把答案挖出来", en: "Not giving you answers, but asking three questions so you uncover them yourself" },
+  "feature2.desc":        { zh: "不直接给你答案，而是让你冷静下来，带你整理自己的答案", en: "Not giving you answers, but helping you calm down and organize your own answers" },
   "feature3.title":       { zh: "个人占卜追踪",                      en: "Personal Reading Tracker" },
   "feature3.desc":        { zh: "占卜结束后可保存结果，见证你的成长轨迹",  en: "Save your readings and witness your journey of growth" },
   "quick.title":          { zh: "快速开始",                         en: "Quick Start" },
   "quick.divination":     { zh: "开始占卜",                         en: "New Reading" },
   "quick.divination.sub": { zh: "开启新问题",                        en: "Start a new question" },
-  "quick.daily":          { zh: "每日一牌",                         en: "Daily Card" },
-  "quick.daily.sub":      { zh: "今日指引",                         en: "Today's guidance" },
-  "quick.history":        { zh: "历史记录",                         en: "History" },
-  "quick.history.sub":    { zh: "查看过往",                         en: "View past readings" },
-  "recent.title":         { zh: "最近占卜",                         en: "Recent Readings" },
-  "trending.title":       { zh: "本周热门话题",                      en: "Trending This Week" },
+
 
   // ── DivinationPage / 导航 ────────────────────────────────────
   "nav.logo":             { zh: "塔罗占卜",                         en: "Tarot" },
@@ -38,10 +33,11 @@ const translations: Record<string, Record<Lang, string>> = {
   // ── Step1Emotion — 输入页 ──────────────────────────────────
   "emotion.lead":         { zh: "你一定有很多想分享的",               en: "You must have a lot on your mind" },
   "emotion.title":        { zh: "冷静一下",                         en: "Take a breath" },
-  "emotion.subtitle":     { zh: "用三组词\n概括你心里的话",           en: "Describe your feelings\nin three short phrases" },
+  "emotion.subtitle":     { zh: "用几句短句概括你的心里话",           en: "Summarize what's on your mind in a few short phrases" },
   "emotion.word1":        { zh: "第一组词",                         en: "First phrase" },
-  "emotion.word2":        { zh: "第二组词",                         en: "Second phrase" },
-  "emotion.word3":        { zh: "第三组词",                         en: "Third phrase" },
+  "emotion.word2":        { zh: "你的疑问",                         en: "Your question" },
+  "emotion.word3":        { zh: "你的纠结",                         en: "Your dilemma" },
+  "emotion.placeholder.confusion": { zh: "陈述你的困惑。", en: "State your confusion." },
   "emotion.sep":          { zh: "、",                              en: " · " },
   "emotion.next":         { zh: "下一步",                           en: "Next" },
   "emotion.guide.link":   { zh: "不知道怎么概括？点这里，我们引导你",   en: "Not sure how? Click here — we'll guide you" },
@@ -62,7 +58,7 @@ const translations: Record<string, Record<Lang, string>> = {
   "guide.modal.ok":       { zh: "知道了",                           en: "Got it" },
 
   // ── Step1Emotion — 确认页 ──────────────────────────────────
-  "confirm.title":        { zh: "你的三组词：",                      en: "Your three phrases:" },
+  "confirm.title":        { zh: "你的概括：",                        en: "Your summary:" },
   "confirm.ask":          { zh: "是这样吗？",                        en: "Is that right?" },
   "confirm.no":           { zh: "不对",                             en: "Change it" },
   "confirm.yes":          { zh: "对，继续",                         en: "Yes, continue" },
@@ -85,6 +81,7 @@ const translations: Record<string, Record<Lang, string>> = {
   "draw.drawing.p":       { zh: "塔罗正在为你指引方向",               en: "The tarot is finding your path" },
   "draw.hint":            { zh: "以下是本次抽到的牌，点击下方按钮查看完整解读", en: "Here are your cards — click below for the full reading" },
   "draw.view.result":     { zh: "查看解读",                         en: "View Reading" },
+  "draw.stripping":       { zh: "正在剥离现实幻觉...",               en: "Stripping away illusions..." },
   "draw.prev":            { zh: "上一步",                           en: "Back" },
 
   // ── Step4Result ─────────────────────────────────────────────

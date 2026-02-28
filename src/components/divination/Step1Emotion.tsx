@@ -40,11 +40,12 @@ export default function Step1Emotion() {
   const [showQ3Modal, setShowQ3Modal] = useState(false);
 
   const threeWords = [word1.trim(), word2.trim(), word3.trim()];
-  const hasAllWords = threeWords.every((w) => w.length > 0);
+  const filledWords = threeWords.filter((w) => w.length > 0);
+  const hasAnyInput = filledWords.length > 0;
   const q3Examples = lang === "en" ? Q3_EXAMPLES_EN : Q3_EXAMPLES_ZH;
 
   const handleDirectNext = () => {
-    if (hasAllWords) setPhase("confirm");
+    if (hasAnyInput) setPhase("confirm");
   };
 
   const handleGuideGenerate = () => {
@@ -57,7 +58,7 @@ export default function Step1Emotion() {
   };
 
   const handleConfirm = () => {
-    setQuestion(threeWords.join(t("emotion.sep", lang)));
+    setQuestion(filledWords.join(t("emotion.sep", lang)));
     nextStep();
   };
 
@@ -194,9 +195,9 @@ export default function Step1Emotion() {
           <div className="emotion-confirm">
             <h2 className="emotion-title">{t("confirm.title", lang)}</h2>
             <div className="confirm-words">
-              <span className="confirm-word">{word1}</span>
-              <span className="confirm-word">{word2}</span>
-              <span className="confirm-word">{word3}</span>
+              {filledWords.map((w, i) => (
+                <span key={i} className="confirm-word">{w}</span>
+              ))}
             </div>
             <p className="confirm-ask">{t("confirm.ask", lang)}</p>
             <div className="step-actions">
@@ -238,7 +239,7 @@ export default function Step1Emotion() {
             <input
               type="text"
               className="emotion-word-input"
-              placeholder={t("emotion.word1", lang)}
+              placeholder={t("emotion.placeholder.confusion", lang)}
               value={word1}
               onChange={(e) => setWord1(e.target.value)}
               maxLength={40}
@@ -265,7 +266,7 @@ export default function Step1Emotion() {
             type="button"
             className="primary-button emotion-next-btn"
             onClick={handleDirectNext}
-            disabled={!hasAllWords}
+            disabled={!hasAnyInput}
           >
             {t("emotion.next", lang)}
           </button>

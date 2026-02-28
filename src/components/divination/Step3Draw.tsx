@@ -18,6 +18,7 @@ export default function Step3Draw() {
   const [flippedCards, setFlippedCards] = useState<number[]>([]);
   const [showDrawnCards, setShowDrawnCards] = useState(false);
   const [drawnResult, setDrawnResult] = useState<DivinationResult | null>(null);
+  const [isStripping, setIsStripping] = useState(false);
 
   const getCardCount = () => {
     const layout = DIVINATION_LAYOUTS[selectedSpread || "trinity"];
@@ -68,7 +69,12 @@ export default function Step3Draw() {
   }, []);
 
   const handleBack = () => prevStep();
-  const handleViewResult = () => nextStep();
+  const handleViewResult = () => {
+    setIsStripping(true);
+    setTimeout(() => {
+      nextStep();
+    }, 1500);
+  };
 
   const drawTitle = showDrawnCards
     ? t("draw.title.drawn", lang)
@@ -128,30 +134,38 @@ export default function Step3Draw() {
 
         {showDrawnCards && drawnResult && (
           <div className="drawn-cards-preview">
-            <p className="drawn-cards-hint">{t("draw.hint", lang)}</p>
-            <div className="drawn-cards-list">
-              {drawnResult.readings.map((reading, index) => (
-                <div key={index} className="drawn-card-preview">
-                  <div
-                    className="drawn-card-preview-image"
-                    style={{
-                      backgroundImage: `url(${getCardImageUrl(reading.card.id, reading.card.name_en)})`,
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
-                      transform: reading.card.isReversed ? "rotate(180deg)" : "none",
-                    }}
-                  />
-                  <div className="drawn-card-preview-overlay" />
-                  <span className="drawn-card-preview-position">{getPositionLabel(reading.position, lang)}</span>
-                  <span className="drawn-card-preview-name">
-                    {lang === "en" ? (reading.card.name_en || reading.card.name_cn) : reading.card.name_cn}
-                  </span>
+            {isStripping ? (
+              <div className="draw-stripping-state" aria-live="polite">
+                <p className="draw-stripping-text">{t("draw.stripping", lang)}</p>
+              </div>
+            ) : (
+              <>
+                <p className="drawn-cards-hint">{t("draw.hint", lang)}</p>
+                <div className="drawn-cards-list">
+                  {drawnResult.readings.map((reading, index) => (
+                    <div key={index} className="drawn-card-preview">
+                      <div
+                        className="drawn-card-preview-image"
+                        style={{
+                          backgroundImage: `url(${getCardImageUrl(reading.card.id, reading.card.name_en)})`,
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
+                          transform: reading.card.isReversed ? "rotate(180deg)" : "none",
+                        }}
+                      />
+                      <div className="drawn-card-preview-overlay" />
+                      <span className="drawn-card-preview-position">{getPositionLabel(reading.position, lang)}</span>
+                      <span className="drawn-card-preview-name">
+                        {lang === "en" ? (reading.card.name_en || reading.card.name_cn) : reading.card.name_cn}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-            <button type="button" className="primary-button drawn-view-result-btn" onClick={handleViewResult}>
-              {t("draw.view.result", lang)}
-            </button>
+                <button type="button" className="primary-button drawn-view-result-btn" onClick={handleViewResult}>
+                  {t("draw.view.result", lang)}
+                </button>
+              </>
+            )}
           </div>
         )}
       </div>

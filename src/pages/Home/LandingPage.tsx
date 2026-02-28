@@ -141,34 +141,9 @@ function LoggedInLandingPage() {
         </div>
       </div>
 
-      {/* 最近占卜 */}
-      <div className="recent-divinations">
-        <h2 className="section-title">{t("recent.title", lang)}</h2>
-        <div className="recent-list">
-          {mockRecentDivinations.map((divination) => (
-            <div key={divination.id} className="recent-item">
-              <h4>{divination.question}</h4>
-              <p className="recent-meta">
-                {divination.layout} · {divination.time}
-              </p>
-              <div className="recent-stats">
-                <span>👍 {divination.likes}</span>
-                <span>💬 {divination.comments}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      
 
-      {/* 热门话题 */}
-      <div className="trending-topics">
-        <h2 className="section-title">{t("trending.title", lang)}</h2>
-        <div className="topic-tags">
-          <span className="topic-tag">#跳槽季</span>
-          <span className="topic-tag">#新年运势</span>
-          <span className="topic-tag">#情人节</span>
-        </div>
-      </div>
+     
     </div>
   );
 }

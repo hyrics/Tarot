@@ -306,6 +306,15 @@ body::after {
   justify-content: center;
 }
 
+.hero-content {
+  width: 100%;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+}
+
 .hero-title {
   font-family: var(--font-display);
   font-size: clamp(2.5rem, 8vw, 3.5rem);
@@ -338,6 +347,8 @@ body::after {
   flex-wrap: wrap;
   gap: 1rem;
   justify-content: center;
+  align-items: center;
+  width: 100%;
   animation: heroTitleIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s both;
 }
 
@@ -1399,10 +1410,29 @@ body::after {
     flex-direction: column;
     width: 100%;
     max-width: 280px;
+    margin-left: auto;
+    margin-right: auto;
   }
   .hero-actions .primary-button,
   .hero-actions .btn-ghost {
     width: 100%;
+  }
+}
+
+/* 小屏手机：hero 与按钮进一步优化 */
+@media (max-width: 380px) {
+  .hero-section {
+    padding: 1.5rem 0.75rem 2.5rem;
+  }
+  .hero-title {
+    font-size: 1.65rem;
+  }
+  .hero-subtitle {
+    font-size: 0.9rem;
+  }
+  .hero-actions {
+    max-width: 100%;
+    padding: 0 0.5rem;
   }
 }
 
@@ -1435,6 +1465,30 @@ body::after {
 @media (max-width: 480px) {
   .features-grid {
     grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 0 0.5rem;
+  }
+  .info-section {
+    padding: 2rem 0;
+  }
+  .section-title {
+    font-size: 1.35rem;
+    padding: 0 0.75rem;
+  }
+  .feature-card {
+    padding: 1.25rem 1rem;
+  }
+  .feature-card h3 {
+    font-size: 1rem;
+  }
+  .feature-card p {
+    font-size: 0.85rem;
+  }
+  .app-main {
+    padding: 1rem 0.75rem 2rem;
+  }
+  .step-content {
+    padding: 0 0.25rem;
   }
 }
 
@@ -2707,6 +2761,26 @@ body::after {
   animation: drawnFadeIn 0.4s ease-out 0.1s both;
 }
 
+.draw-stripping-state {
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+.draw-stripping-text {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+  margin: 0;
+  animation: drawStrippingPulse 1.2s ease-in-out infinite;
+}
+@keyframes drawStrippingPulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
 @keyframes drawnPreviewIn {
   from {
     opacity: 0;
@@ -3412,6 +3486,19 @@ body::after {
   }
 }
 
+/* 打字机阶段：卡片缓缓浮现 */
+.cards-result.cards-reveal .result-card {
+  opacity: 0;
+  animation: resultCardReveal 0.7s ease-out forwards;
+}
+.cards-result.cards-reveal .result-card:nth-child(1) { animation-delay: 0.2s; }
+.cards-result.cards-reveal .result-card:nth-child(2) { animation-delay: 0.45s; }
+.cards-result.cards-reveal .result-card:nth-child(3) { animation-delay: 0.7s; }
+@keyframes resultCardReveal {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .result-card {
   background: rgba(26, 31, 58, 0.4);
   border: 2px solid var(--border);
@@ -3824,6 +3911,26 @@ body::after {
   margin-bottom: 2rem;
 }
 
+@media (max-width: 480px) {
+  .overall-reading-new {
+    padding: 1.25rem 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .reading-title-new {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+  }
+  .reading-analysis {
+    font-size: 0.95rem;
+    line-height: 1.85;
+  }
+  .result-screenshot-area {
+    padding: 1rem !important;
+    margin-bottom: 1.25rem !important;
+    border-radius: 12px;
+  }
+}
+
 .reading-title-new {
   font-family: var(--font-display);
   font-size: 1.3rem;
@@ -3835,15 +3942,30 @@ body::after {
 .reading-content-new {
   font-family: var(--font-body);
   color: var(--text-bright);
-  line-height: 1.8;
+  line-height: 1.85;
   margin-bottom: 1.5rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .reading-analysis {
   font-size: 1rem;
   color: var(--text-bright);
-  line-height: 1.8;
+  line-height: 1.9;
+  letter-spacing: 0.02em;
   white-space: pre-line;
+  text-align: justify;
+  word-break: break-word;
+  margin: 0;
+}
+
+/* 段落间距：AI 生成内容中换行呈现的段落 */
+.reading-content-new .reading-analysis {
+  margin-bottom: 1.25em;
+}
+
+.reading-content-new .reading-analysis:last-child {
+  margin-bottom: 0;
 }
 
 .reading-loading .reading-analysis {
