@@ -10,6 +10,8 @@ import DivinationPage from "./pages/Divination/DivinationPage.tsx";
 import HistoryPage from "./pages/History/HistoryPage.tsx";
 import NotFoundPage from "./pages/NotFound/NotFoundPage.tsx";
 import ProfilePage from "./pages/Profile/ProfilePage.tsx";
+import AdminPage from "./pages/Admin/AdminPage.tsx";
+import TokenPage from "./pages/Token/TokenPage.tsx";
 
 // 导入全局样式
 import "./styles/global.css";
@@ -57,6 +59,12 @@ function App() {
                   <Route path="/draw" element={<Navigate to="/divination" replace />} />
                   <Route path="/result" element={<Navigate to="/divination" replace />} />
                   
+                  {/* Token 验证页 */}
+                  <Route path="/token" element={<TokenPage />} />
+
+                  {/* 管理后台 */}
+                  <Route path="/admin" element={<AdminPage />} />
+
                   {/* 404 */}
                   <Route path="*" element={<NotFoundPage />} />
                 </Routes>

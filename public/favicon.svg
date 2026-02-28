@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1a0a0f"/>
+      <stop offset="100%" stop-color="#0a0508"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e8b4b8"/>
+      <stop offset="40%" stop-color="#c9a96e"/>
+      <stop offset="100%" stop-color="#b5737a"/>
+    </linearGradient>
+    <linearGradient id="moon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f0d0d4"/>
+      <stop offset="100%" stop-color="#c9a96e"/>
+    </linearGradient>
+  </defs>
+  <circle cx="32" cy="32" r="32" fill="url(#bg)"/>
+  <circle cx="32" cy="32" r="29" fill="none" stroke="url(#gold)" stroke-width="0.8" opacity="0.6"/>
+  <circle cx="32" cy="32" r="26" fill="none" stroke="url(#gold)" stroke-width="0.3" opacity="0.3"/>
+  <circle cx="38" cy="16" r="8" fill="url(#moon)" opacity="0.95"/>
+  <circle cx="41" cy="14" r="6.5" fill="url(#bg)"/>
+  <rect x="22" y="22" width="20" height="28" rx="2" ry="2" fill="none" stroke="url(#gold)" stroke-width="1.2" opacity="0.9"/>
+  <polygon points="32,27 33.2,30.6 37,30.6 34,32.8 35.2,36.4 32,34.2 28.8,36.4 30,32.8 27,30.6 30.8,30.6" fill="url(#gold)" opacity="0.85"/>
+  <circle cx="52" cy="14" r="1" fill="url(#gold)" opacity="0.5"/>
+  <circle cx="14" cy="50" r="1.2" fill="url(#gold)" opacity="0.5"/>
+  <circle cx="18" cy="54" r="0.8" fill="url(#gold)" opacity="0.4"/>
+  <path d="M 20 54 Q 32 58 44 54" fill="none" stroke="url(#gold)" stroke-width="0.8" opacity="0.5"/>
+</svg>

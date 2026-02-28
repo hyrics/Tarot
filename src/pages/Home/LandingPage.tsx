@@ -62,22 +62,17 @@ function NotLoggedInLandingPage() {
           <div className="feature-card">
             <div className="feature-icon">✨</div>
             <h3>78张经典塔罗牌</h3>
-            <p>完整的伟特塔罗牌体系，每张牌都有深度解读</p>
+            <p>每一张牌照见的都不是命运，是你自己不敢承认的那部分</p>
           </div>
           <div className="feature-card">
             <div className="feature-icon">📖</div>
-            <h3>多种占卜方式</h3>
-            <p>从单牌到凯尔特十字，满足不同需求</p>
-          </div>
-          <div className="feature-card">
-            <div className="feature-icon">👥</div>
-            <h3>活跃的社区讨论</h3>
-            <p>与塔罗爱好者分享心得，互相学习</p>
+            <h3>过去-现在-未来三张牌</h3>
+            <p>不是直接给你答案，是问你三个问题，让你自己把答案挖出来</p>
           </div>
           <div className="feature-card">
             <div className="feature-icon">📊</div>
             <h3>个人占卜追踪</h3>
-            <p>记录你的占卜历程，见证成长轨迹</p>
+            <p>占卜结束后可保存结果，见证你的成长轨迹</p>
           </div>
         </div>
       </div>

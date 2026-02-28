@@ -3,40 +3,36 @@ import { useDivinationChain } from "../../context/DivinationChainContext";
 
 type Phase = "input" | "guide" | "confirm";
 
-const GUIDE_OPTIONS = {
-  q1: {
-    label: "这件事跟谁有关？",
-    options: ["他", "她", "老板", "自己", "家人", "朋友", "陌生人"],
-  },
-  q2: {
-    label: "你现在最强烈的感觉？",
-    options: ["恨", "累", "空", "怕", "迷茫", "焦虑", "期待", "委屈"],
-  },
-  q3: {
-    label: "你最想要什么？",
-    options: ["答案", "结束", "钱", "抱抱", "方向", "自由", "认可", "安全感"],
-  },
-};
+const Q3_EXAMPLES = [
+  "怕承认自己选错了",
+  "怕被所有人说「我早告诉过你」",
+  "怕考上了也不快乐",
+  "怕他回了之后，发现自己也没那么想要",
+  "怕的不是他不回，是怕自己其实在等他回",
+];
 
 export default function Step1Emotion() {
   const { setQuestion, nextStep } = useDivinationChain();
   const [phase, setPhase] = useState<Phase>("input");
 
+  // 主输入页三个词
   const [word1, setWord1] = useState("");
   const [word2, setWord2] = useState("");
   const [word3, setWord3] = useState("");
 
+  // 引导页三个回答
   const [guideA1, setGuideA1] = useState("");
   const [guideA2, setGuideA2] = useState("");
   const [guideA3, setGuideA3] = useState("");
+
+  // Q3 示例弹窗
+  const [showQ3Modal, setShowQ3Modal] = useState(false);
 
   const threeWords = [word1.trim(), word2.trim(), word3.trim()];
   const hasAllWords = threeWords.every((w) => w.length > 0);
 
   const handleDirectNext = () => {
-    if (hasAllWords) {
-      setPhase("confirm");
-    }
+    if (hasAllWords) setPhase("confirm");
   };
 
   const handleGuideGenerate = () => {
@@ -53,66 +49,74 @@ export default function Step1Emotion() {
     nextStep();
   };
 
-  const handleReject = () => {
-    setPhase("input");
-  };
-
+  // ── 引导页 ─────────────────────────────────────
   if (phase === "guide") {
     return (
       <div className="step-content">
         <div className="emotion-page">
           <div className="emotion-guide">
             <h2 className="emotion-title">我们问，你答</h2>
+            <p className="emotion-subtitle" style={{ marginTop: 0 }}>
+              答不出来的，我们帮你
+            </p>
 
+            {/* Q1 */}
             <div className="guide-question">
-              <p className="guide-label">{GUIDE_OPTIONS.q1.label}</p>
+              <p className="guide-label">
+                Q1：这件事发生之后，<br />你最先失去的是什么？
+              </p>
               <input
                 type="text"
                 className="emotion-word-input guide-word-input"
                 placeholder="请输入..."
                 value={guideA1}
                 onChange={(e) => setGuideA1(e.target.value)}
-                maxLength={10}
+                maxLength={20}
               />
+              <p className="guide-hint">
+                ↪ 想不到？试试：时间 / 自尊 / 信任 / 那个还会笑的自己
+              </p>
             </div>
 
+            {/* Q2 */}
             <div className="guide-question">
-              <p className="guide-label">{GUIDE_OPTIONS.q2.label}</p>
+              <p className="guide-label">
+                Q2：如果给现在的痛苦起个名字，<br />你会叫它什么？
+              </p>
               <input
                 type="text"
                 className="emotion-word-input guide-word-input"
                 placeholder="请输入..."
                 value={guideA2}
                 onChange={(e) => setGuideA2(e.target.value)}
-                maxLength={10}
+                maxLength={20}
               />
+              <p className="guide-hint">
+                ↪ 举个例子："一个蹲在角落里的小孩" / "一块压在胸口的石头"
+              </p>
             </div>
 
+            {/* Q3 */}
             <div className="guide-question">
-              <p className="guide-label">{GUIDE_OPTIONS.q3.label}</p>
+              <p className="guide-label">
+                Q3：你怕的不是这件事本身，<br />你怕的是______？
+              </p>
               <input
                 type="text"
                 className="emotion-word-input guide-word-input"
                 placeholder="请输入..."
                 value={guideA3}
                 onChange={(e) => setGuideA3(e.target.value)}
-                maxLength={10}
+                maxLength={20}
               />
+              <button
+                type="button"
+                className="guide-q3-link"
+                onClick={() => setShowQ3Modal(true)}
+              >
+                ↪ 实在想不到？☞ 看看别人怎么填的
+              </button>
             </div>
-
-            {guideA1 && guideA2 && guideA3 && (
-              <div className="guide-preview">
-                <p className="guide-preview-label">你的三个词：</p>
-                <div className="guide-preview-words">
-                  <span className="preview-word">{guideA1}</span>
-                  <span className="preview-sep">、</span>
-                  <span className="preview-word">{guideA2}</span>
-                  <span className="preview-sep">、</span>
-                  <span className="preview-word">{guideA3}</span>
-                </div>
-                <p className="guide-preview-hint">（可在下一步修改）</p>
-              </div>
-            )}
 
             <div className="step-actions">
               <button
@@ -128,15 +132,50 @@ export default function Step1Emotion() {
                 onClick={handleGuideGenerate}
                 disabled={!guideA1 || !guideA2 || !guideA3}
               >
-                生成三个词
+                下一步
               </button>
             </div>
           </div>
         </div>
+
+        {/* Q3 示例弹窗 */}
+        {showQ3Modal && (
+          <div className="guide-modal-mask" onClick={() => setShowQ3Modal(false)}>
+            <div
+              className="guide-modal"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="guide-modal-title">别人这么填的：</h3>
+              <ul className="guide-modal-list">
+                {Q3_EXAMPLES.map((ex, i) => (
+                  <li
+                    key={i}
+                    className="guide-modal-item"
+                    onClick={() => {
+                      setGuideA3(ex);
+                      setShowQ3Modal(false);
+                    }}
+                  >
+                    • {ex}
+                  </li>
+                ))}
+              </ul>
+              <button
+                type="button"
+                className="primary-button"
+                style={{ marginTop: "1rem", minWidth: "120px" }}
+                onClick={() => setShowQ3Modal(false)}
+              >
+                知道了
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
 
+  // ── 确认页 ─────────────────────────────────────
   if (phase === "confirm") {
     return (
       <div className="step-content">
@@ -153,7 +192,7 @@ export default function Step1Emotion() {
               <button
                 type="button"
                 className="btn-ghost"
-                onClick={handleReject}
+                onClick={() => setPhase("input")}
               >
                 不对
               </button>
@@ -171,7 +210,7 @@ export default function Step1Emotion() {
     );
   }
 
-  // phase === "input"
+  // ── 主输入页 ────────────────────────────────────
   return (
     <div className="step-content">
       <div className="emotion-page">

@@ -21,6 +21,11 @@ export function useToken() {
   }, [])
 
   async function checkToken(t: string) {
+    if (!supabase) {
+      setStatus('valid') // Supabase 未配置时跳过校验，直接放行
+      return
+    }
+
     const { data, error } = await supabase
       .from('tokens')
       .select('used')
@@ -41,7 +46,7 @@ export function useToken() {
   }
 
   async function markTokenUsed() {
-    if (!token) return false
+    if (!token || !supabase) return false
 
     const { error } = await supabase
       .from('tokens')

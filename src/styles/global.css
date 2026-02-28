@@ -4465,6 +4465,100 @@ body::after {
   text-align: left;
 }
 
+/* 引导页问题间的提示文字 */
+.guide-hint {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin: 0.45rem 0 0;
+  line-height: 1.6;
+  opacity: 0.75;
+}
+
+/* Q3「看看别人怎么填的」按钮 */
+.guide-q3-link {
+  display: inline-block;
+  margin-top: 0.45rem;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  color: var(--gold);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: opacity 0.2s ease;
+  text-align: left;
+}
+
+.guide-q3-link:hover {
+  opacity: 0.75;
+  text-decoration: underline;
+}
+
+/* 弹窗遮罩 */
+.guide-modal-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: drawnFadeIn 0.25s ease both;
+}
+
+/* 弹窗主体 */
+.guide-modal {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 2rem 1.75rem;
+  max-width: 380px;
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px var(--glow);
+  animation: drawnPreviewIn 0.3s ease both;
+}
+
+.guide-modal-title {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  color: var(--gold);
+  margin: 0 0 1rem;
+  font-weight: 700;
+  align-self: flex-start;
+}
+
+.guide-modal-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.guide-modal-item {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  padding: 0.55rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  line-height: 1.5;
+}
+
+.guide-modal-item:hover {
+  background: rgba(229, 184, 71, 0.1);
+  border-color: rgba(229, 184, 71, 0.25);
+  color: var(--text-bright);
+}
+
 .guide-options {
   display: flex;
   flex-wrap: wrap;
