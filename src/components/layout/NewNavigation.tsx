@@ -3,8 +3,37 @@ import { NavLink } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { LoginModal } from "../signin/LoginModal";
 import { UserMenu } from "../signin/UserMenu";
+import { useLangContext } from "../../context/LangContext";
+import { t } from "../../lib/i18n";
+
+function LangSwitcher() {
+  const { lang, setLang } = useLangContext();
+
+  return (
+    <div className="lang-switcher" aria-label="Language switcher">
+      <button
+        type="button"
+        className={`lang-btn${lang === "zh" ? " lang-active" : ""}`}
+        onClick={() => setLang("zh")}
+        disabled={lang === "zh"}
+      >
+        中
+      </button>
+      <span className="lang-sep">/</span>
+      <button
+        type="button"
+        className={`lang-btn${lang === "en" ? " lang-active" : ""}`}
+        onClick={() => setLang("en")}
+        disabled={lang === "en"}
+      >
+        EN
+      </button>
+    </div>
+  );
+}
 
 export default function NewNavigation() {
+  const { lang } = useLangContext();
   const { user } = useAuth();
   const [showLoginModal, setShowLoginModal] = useState(false);
 
@@ -12,8 +41,9 @@ export default function NewNavigation() {
     <>
       <header className="app-header">
         <nav className="app-nav">
-          <div className="app-logo">塔罗占卜</div>
+          <div className="app-logo">{t("nav.logo", lang)}</div>
           <div className="app-nav-links">
+            <LangSwitcher />
             {user ? (
               <div className="user-nav">
                 <span className="user-info">👤 {user.name}</span>

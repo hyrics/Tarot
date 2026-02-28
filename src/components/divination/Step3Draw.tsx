@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useDivinationChain } from "../../context/DivinationChainContext";
 import { DIVINATION_LAYOUTS } from "../../data/divination_layouts";
 import { getCardImageUrl } from "../../lib/tarotImageUtils";
+import { t, getPositionLabel } from "../../lib/i18n";
+import { useLang } from "../../hooks/useLang";
 import type { DivinationResult } from "../../types/tarot";
 
 /**
@@ -10,13 +12,13 @@ import type { DivinationResult } from "../../types/tarot";
  */
 export default function Step3Draw() {
   const { question, selectedSpread, performDivination, addLayerToChain, nextStep, prevStep } = useDivinationChain();
-  const [isShuffling, setIsShuffling] = useState(true); // 默认开始洗牌
+  const lang = useLang();
+  const [isShuffling, setIsShuffling] = useState(true);
   const [isDrawing, setIsDrawing] = useState(false);
   const [flippedCards, setFlippedCards] = useState<number[]>([]);
   const [showDrawnCards, setShowDrawnCards] = useState(false);
   const [drawnResult, setDrawnResult] = useState<DivinationResult | null>(null);
 
-  // 获取当前占卜方式的牌数
   const getCardCount = () => {
     const layout = DIVINATION_LAYOUTS[selectedSpread || "trinity"];
     return layout?.cardCount || 3;
@@ -24,14 +26,12 @@ export default function Step3Draw() {
 
   const cardCount = getCardCount();
 
-  // 自动开始洗牌流程（仅挂载时执行一次，避免依赖变化导致定时器被反复清除）
   useEffect(() => {
     let shuffleTimer: NodeJS.Timeout;
     let drawTimer: NodeJS.Timeout;
     let flipTimers: NodeJS.Timeout[] = [];
     let showCardsTimer: NodeJS.Timeout;
 
-    // 洗牌 1s + 抽牌 0.5s = 1.5s 后进入翻牌并展示
     shuffleTimer = setTimeout(() => {
       setIsShuffling(false);
       setIsDrawing(true);
@@ -64,27 +64,28 @@ export default function Step3Draw() {
       if (showCardsTimer) clearTimeout(showCardsTimer);
       flipTimers.forEach(timer => clearTimeout(timer));
     };
-    // 只依赖 cardCount；performDivination/addLayerToChain 在挂载时调用一次即可
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleBack = () => {
-    prevStep();
-  };
+  const handleBack = () => prevStep();
+  const handleViewResult = () => nextStep();
 
-  const handleViewResult = () => {
-    nextStep();
-  };
+  const drawTitle = showDrawnCards
+    ? t("draw.title.drawn", lang)
+    : isShuffling
+      ? t("draw.title.shuffling", lang)
+      : t("draw.title.drawing", lang);
+
+  const drawSubtitle = t("draw.subtitle", lang)
+    + (question
+      ? t("draw.subtitle.question", lang) + question
+      : t("draw.subtitle.general", lang));
 
   return (
     <div className="step-content">
       <div className="step-header">
-        <h2 className="step-title">
-          {showDrawnCards ? "你的牌面" : isShuffling ? "洗牌中..." : "正在抽取塔罗牌..."}
-        </h2>
-        <p className="step-subtitle">
-          静心等待塔罗的指引{question ? ` · 问题：${question}` : " · 通用解读"}
-        </p>
+        <h2 className="step-title">{drawTitle}</h2>
+        <p className="step-subtitle">{drawSubtitle}</p>
       </div>
 
       <div className="draw-area">
@@ -96,16 +97,16 @@ export default function Step3Draw() {
                 aria-hidden={!isShuffling}
                 style={{ opacity: isShuffling ? 1 : 0 }}
               >
-                <h3>洗牌中...</h3>
-                <p>请闭上眼睛，放松呼吸...</p>
+                <h3>{t("draw.shuffle.h3", lang)}</h3>
+                <p>{t("draw.shuffle.p", lang)}</p>
               </div>
               <div
                 className="draw-message phase-message"
                 aria-hidden={!isDrawing || showDrawnCards}
                 style={{ opacity: isDrawing && !showDrawnCards ? 1 : 0 }}
               >
-                <h3>正在抽取塔罗牌...</h3>
-                <p>塔罗正在为你指引方向</p>
+                <h3>{t("draw.drawing.h3", lang)}</h3>
+                <p>{t("draw.drawing.p", lang)}</p>
               </div>
             </div>
             <div className={`shuffle-placeholder ${isDrawing ? "draw-phase" : ""}`}>
@@ -127,7 +128,7 @@ export default function Step3Draw() {
 
         {showDrawnCards && drawnResult && (
           <div className="drawn-cards-preview">
-            <p className="drawn-cards-hint">以下是本次抽到的牌，点击下方按钮查看完整解读</p>
+            <p className="drawn-cards-hint">{t("draw.hint", lang)}</p>
             <div className="drawn-cards-list">
               {drawnResult.readings.map((reading, index) => (
                 <div key={index} className="drawn-card-preview">
@@ -141,13 +142,15 @@ export default function Step3Draw() {
                     }}
                   />
                   <div className="drawn-card-preview-overlay" />
-                  <span className="drawn-card-preview-position">{reading.position}</span>
-                  <span className="drawn-card-preview-name">{reading.card.name_cn}</span>
+                  <span className="drawn-card-preview-position">{getPositionLabel(reading.position, lang)}</span>
+                  <span className="drawn-card-preview-name">
+                    {lang === "en" ? (reading.card.name_en || reading.card.name_cn) : reading.card.name_cn}
+                  </span>
                 </div>
               ))}
             </div>
             <button type="button" className="primary-button drawn-view-result-btn" onClick={handleViewResult}>
-              查看解读
+              {t("draw.view.result", lang)}
             </button>
           </div>
         )}
@@ -160,7 +163,7 @@ export default function Step3Draw() {
           onClick={handleBack}
           disabled={isShuffling || isDrawing}
         >
-          上一步
+          {t("draw.prev", lang)}
         </button>
       </div>
     </div>

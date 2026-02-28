@@ -13,6 +13,11 @@ export interface TarotCardBase {
   meaning_reversed: string;
   keywords_upright: string[];
   keywords_reversed: string[];
+  /** 英文牌意与关键词（可选，用于英文模式展示） */
+  meaning_upright_en?: string;
+  meaning_reversed_en?: string;
+  keywords_upright_en?: string[];
+  keywords_reversed_en?: string[];
   description?: string;
   lucky_number: number;
 }

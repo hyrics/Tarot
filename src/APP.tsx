@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { TarotSessionProvider } from "./context/TarotSessionContext.tsx";
 import { AuthProvider } from "./context/AuthContext.tsx";
 import { DivinationChainProvider } from "./context/DivinationChainContext.tsx";
+import { LangProvider } from "./context/LangContext.tsx";
 import NewNavigation from "./components/layout/NewNavigation.tsx";
 import LandingPage from "./pages/Home/LandingPage.tsx";
 import DivinationPage from "./pages/Divination/DivinationPage.tsx";
@@ -19,6 +20,7 @@ import "./styles/global.css";
 function App() {
   return (
     <BrowserRouter>
+      <LangProvider>
       <AuthProvider>
         <TarotSessionProvider>
           <DivinationChainProvider>
@@ -73,6 +75,7 @@ function App() {
           </DivinationChainProvider>
         </TarotSessionProvider>
       </AuthProvider>
+      </LangProvider>
     </BrowserRouter>
   );
 }

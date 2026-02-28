@@ -4,6 +4,9 @@ import { useTarotHistory } from "../../hooks/useTarotHistory";
 import { getCardImageUrl } from "../../lib/tarotImageUtils";
 import { generateOverallInterpretationWithDeepSeek } from "../../lib/deepseek";
 import { DIVINATION_LAYOUTS } from "../../data/divination_layouts";
+import { getCardMeaningAndKeywords } from "../../data/tarot_cards";
+import { t, getPositionLabel } from "../../lib/i18n";
+import { useLang } from "../../hooks/useLang";
 import type { TarotReadingRecord } from "../../types/tarot";
 
 const PURCHASE_URL = "https://xhslink.com/m/AiCdjbwJCUf";
@@ -52,13 +55,13 @@ const SKELETON_STYLE = `
 }
 `;
 
-const loadingPhrases = [
-  "星盘正在旋转…",
-  "解读牌面能量中…",
-  "连接宇宙意识…",
-  "织入命运丝线…",
-  "整合塔罗智慧…",
-];
+const LOADING_PHRASE_KEYS = [
+  "loading.phrase1",
+  "loading.phrase2",
+  "loading.phrase3",
+  "loading.phrase4",
+  "loading.phrase5",
+] as const;
 
 export default function Step4Result() {
   const {
@@ -69,6 +72,7 @@ export default function Step4Result() {
     resetChain,
   } = useDivinationChain();
   const { saveRecord } = useTarotHistory();
+  const lang = useLang();
 
   const [selectedCard, setSelectedCard] = useState<any>(null);
   const [saveMessage, setSaveMessage] = useState("");
@@ -83,7 +87,7 @@ export default function Step4Result() {
   useEffect(() => {
     if (!loadingAi) return;
     const timer = setInterval(() => {
-      setPhraseIndex((i) => (i + 1) % loadingPhrases.length);
+      setPhraseIndex((i) => (i + 1) % LOADING_PHRASE_KEYS.length);
     }, 2200);
     return () => clearInterval(timer);
   }, [loadingAi]);
@@ -141,7 +145,7 @@ export default function Step4Result() {
         dataUrl = canvas.toDataURL("image/png");
       } catch {
         // OSS 未配置 CORS 时 toDataURL 会抛出 SecurityError
-        setSaveMessage("❌ 请先在阿里云OSS控制台开启跨域规则（CORS），才能保存含图片的截图");
+        setSaveMessage(t("result.cors.fail", lang));
         setTimeout(() => setSaveMessage(""), 5000);
         return;
       }
@@ -149,10 +153,10 @@ export default function Step4Result() {
       link.download = `塔罗解读_${Date.now()}.png`;
       link.href = dataUrl;
       link.click();
-      setSaveMessage("✅ 图片已保存，可发送给朋友");
+      setSaveMessage(t("result.save.success", lang));
       setTimeout(() => setSaveMessage(""), 3000);
     } catch (e) {
-      setSaveMessage("❌ 截图失败，请重试");
+      setSaveMessage(t("result.save.fail", lang));
       setTimeout(() => setSaveMessage(""), 3000);
     } finally {
       setCapturing(false);
@@ -166,25 +170,25 @@ export default function Step4Result() {
       if (!canvas) return;
       canvas.toBlob(async (blob) => {
         if (!blob) return;
-        const file = new File([blob], "塔罗解读.png", { type: "image/png" });
+        const file = new File([blob], "tarot-reading.png", { type: "image/png" });
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
           await navigator.share({
-            title: "我的塔罗解读结果",
-            text: `${question || "通用占卜"} · 快来看看我的塔罗解读！`,
+            title: lang === "en" ? "My Tarot Reading" : "我的塔罗解读结果",
+            text: `${question || (lang === "en" ? "General Reading" : "通用占卜")} · ${lang === "en" ? "Check out my tarot reading!" : "快来看看我的塔罗解读！"}`,
             files: [file],
           });
         } else {
           const link = document.createElement("a");
-          link.download = `塔罗解读_${Date.now()}.png`;
+          link.download = `tarot-reading_${Date.now()}.png`;
           link.href = canvas.toDataURL("image/png");
           link.click();
-          setSaveMessage("✅ 图片已下载，可分享给朋友");
+          setSaveMessage(t("result.share.success", lang));
           setTimeout(() => setSaveMessage(""), 3000);
         }
       }, "image/png");
     } catch (e: any) {
       if (e?.name !== "AbortError") {
-        setSaveMessage("❌ 分享失败，请重试");
+        setSaveMessage(t("result.share.fail", lang));
         setTimeout(() => setSaveMessage(""), 3000);
       }
     } finally {
@@ -196,10 +200,10 @@ export default function Step4Result() {
     return (
       <div className="step-content">
         <div className="error-message">
-          <h3>占卜结果加载失败</h3>
-          <p>请重新进行占卜</p>
+          <h3>{t("result.error.title", lang)}</h3>
+          <p>{t("result.error.desc", lang)}</p>
           <button type="button" className="primary-button" onClick={prevStep}>
-            返回上一步
+            {t("result.error.back", lang)}
           </button>
         </div>
       </div>
@@ -218,6 +222,7 @@ export default function Step4Result() {
     generateOverallInterpretationWithDeepSeek({
       spreadName: layout.name,
       question,
+      lang,
       cards: displayCards.map((c) => ({
         position: c.position,
         name_cn: c.name,
@@ -237,9 +242,12 @@ export default function Step4Result() {
       <style>{SKELETON_STYLE}</style>
 
       <div className="step-header">
-        <h2 className="step-title">占卜结果</h2>
+        <h2 className="step-title">{t("result.title", lang)}</h2>
         <p className="step-subtitle">
-          塔罗为你指引方向{question ? ` · 问题：${question}` : " · 通用解读"}
+          {t("result.subtitle.pre", lang)}
+          {question
+            ? `${t("result.subtitle.question", lang)}${question}`
+            : t("result.subtitle.general", lang)}
         </p>
       </div>
 
@@ -251,7 +259,7 @@ export default function Step4Result() {
         {/* 顶部标题 */}
         <div style={{ textAlign: "center", marginBottom: "1.25rem" }}>
           <p style={{ fontSize: "0.75rem", letterSpacing: "0.2em", color: "#c9a96e", margin: 0 }}>
-            ✦ 塔罗占卜结果 ✦
+            ✦ {t("result.title", lang)} ✦
           </p>
           {question && (
             <p style={{ fontSize: "1rem", color: "#e8e0d0", marginTop: "0.4rem", marginBottom: 0 }}>
@@ -262,7 +270,11 @@ export default function Step4Result() {
 
         {/* 整体解读 / 骨架屏 */}
         <div className="overall-reading-new">
-          <h3 className="reading-title-new">{displayCards.length}张牌的整体解读</h3>
+          <h3 className="reading-title-new">
+            {lang === "en"
+              ? `${displayCards.length}${t("result.overall.suffix", lang)}`
+              : `${displayCards.length}${t("result.overall.suffix", lang)}`}
+          </h3>
 
           {loadingAi ? (
             <div style={{ padding: "0.5rem 0" }}>
@@ -282,7 +294,7 @@ export default function Step4Result() {
                 marginBottom: "1.25rem", letterSpacing: "0.05em",
                 transition: "opacity 0.4s",
               }}>
-                {loadingPhrases[phraseIndex]}
+                {t(LOADING_PHRASE_KEYS[phraseIndex], lang)}
               </p>
               {/* 骨架行 */}
               {[100, 90, 95, 80, 85, 70].map((w, i) => (
@@ -295,7 +307,7 @@ export default function Step4Result() {
             </div>
           ) : (
             <div className="reading-content-new reading-loading">
-              <p className="reading-analysis">暂无整体解读（请配置 DeepSeek API 或稍后重试）</p>
+              <p className="reading-analysis">{t("result.no.ai", lang)}</p>
             </div>
           )}
         </div>
@@ -328,33 +340,40 @@ export default function Step4Result() {
               <div className="card-content">
                 <div className="card-header">
                   <h4 className="card-name">
-                    {card.name}
-                    <span className="card-name-en">({card.nameEn})</span>
+                    {lang === "en" ? (card.nameEn || card.name) : card.name}
+                    {lang === "zh" && (
+                      <span className="card-name-en">({card.nameEn})</span>
+                    )}
                   </h4>
                 </div>
                 <div className="card-orientation-wrapper">
                   <span className={`card-orientation ${card.isReversed ? "reversed" : "upright"}`}>
-                    {card.isReversed ? "逆位" : "正位"}
+                    {card.isReversed ? t("result.card.reversed", lang) : t("result.card.upright", lang)}
                   </span>
                 </div>
-                <div className="card-position">{card.position}</div>
-                <div className="card-meaning">{card.meaning}</div>
-                {card.keywords && card.keywords.length > 0 && (
-                  <div className="card-keywords">
-                    {card.keywords.slice(0, 5).map((keyword, i) => (
-                      <span key={i} className="keyword">{keyword}</span>
-                    ))}
-                  </div>
-                )}
+                <div className="card-position">{getPositionLabel(card.position, lang)}</div>
+                <div className="card-meaning">
+                  {getCardMeaningAndKeywords(card.id ?? 0, card.isReversed ?? false, lang).meaning}
+                </div>
+                {(() => {
+                  const { keywords } = getCardMeaningAndKeywords(card.id ?? 0, card.isReversed ?? false, lang);
+                  return keywords.length > 0 ? (
+                    <div className="card-keywords">
+                      {keywords.slice(0, 5).map((keyword, i) => (
+                        <span key={i} className="keyword">{keyword}</span>
+                      ))}
+                    </div>
+                  ) : null;
+                })()}
                 <div className="card-numerology">
-                  <span className="numerology-label">数字学：</span>
+                  <span className="numerology-label">{t("result.card.numerology", lang)}</span>
                   <span className="numerology-value">{card.nameEn ? (card.nameEn.length % 9 || 9) : "—"}</span>
                 </div>
                 <button
                   className="detail-button"
                   onClick={(e) => { e.stopPropagation(); handleCardClick(card); }}
                 >
-                  查看完整解读
+                  {t("result.card.detail", lang)}
                 </button>
               </div>
             </div>
@@ -369,10 +388,10 @@ export default function Step4Result() {
         }}>
           <div>
             <p style={{ fontSize: "0.8rem", color: "#c9a96e", margin: "0 0 0.25rem", fontWeight: 600 }}>
-              ✦ 想要你的专属塔罗解读？
+              {t("result.xhs.title", lang)}
             </p>
             <p style={{ fontSize: "0.75rem", color: "#a89880", margin: 0 }}>
-              扫码找到我 · 小红书「南多」
+              {t("result.xhs.sub", lang)}
             </p>
             <p style={{ fontSize: "0.7rem", color: "#6b5e4a", margin: "0.2rem 0 0" }}>
               ID: 9541747431
@@ -392,7 +411,10 @@ export default function Step4Result() {
         <div className="card-detail-modal" onClick={handleCloseDetail}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>{selectedCard.name} ({selectedCard.nameEn})</h3>
+              <h3>
+                {lang === "en" ? (selectedCard.nameEn || selectedCard.name) : selectedCard.name}
+                {lang === "zh" && ` (${selectedCard.nameEn})`}
+              </h3>
               <button className="close-button" onClick={handleCloseDetail}>×</button>
             </div>
             <div className="modal-body">
@@ -406,42 +428,44 @@ export default function Step4Result() {
               <div className="detail-overlay" />
               <div className="detail-content">
                 <div className="detail-section">
-                  <h4>基本信息</h4>
+                  <h4>{t("modal.basic", lang)}</h4>
                   <div className="detail-grid">
                     <div className="detail-item">
-                      <span className="label">位置：</span>
-                      <span className="value">{selectedCard.position}</span>
+                      <span className="label">{t("modal.position", lang)}</span>
+                      <span className="value">{getPositionLabel(selectedCard.position, lang)}</span>
                     </div>
                     <div className="detail-item">
-                      <span className="label">状态：</span>
+                      <span className="label">{t("modal.status", lang)}</span>
                       <span className={`value orientation ${selectedCard.isReversed ? "reversed" : "upright"}`}>
-                        {selectedCard.isReversed ? "逆位" : "正位"}
+                        {selectedCard.isReversed ? t("result.card.reversed", lang) : t("result.card.upright", lang)}
                       </span>
                     </div>
                     <div className="detail-item">
-                      <span className="label">数字学：</span>
+                      <span className="label">{t("modal.numerology", lang)}</span>
                       <span className="value">{selectedCard.nameEn.length % 9 || 9}</span>
                     </div>
                   </div>
                 </div>
                 <div className="detail-section">
-                  <h4>快速解读</h4>
-                  <p className="quick-meaning">{selectedCard.meaning}</p>
+                  <h4>{t("modal.quick", lang)}</h4>
+                  <p className="quick-meaning">
+                    {getCardMeaningAndKeywords(selectedCard.id ?? 0, selectedCard.isReversed ?? false, lang).meaning}
+                  </p>
                 </div>
                 <div className="detail-section">
-                  <h4>关键词</h4>
+                  <h4>{t("modal.keywords", lang)}</h4>
                   <div className="keywords-list">
-                    {selectedCard.keywords.map((keyword: string, i: number) => (
+                    {getCardMeaningAndKeywords(selectedCard.id ?? 0, selectedCard.isReversed ?? false, lang).keywords.map((keyword: string, i: number) => (
                       <span key={i} className="keyword">{keyword}</span>
                     ))}
                   </div>
                 </div>
                 <div className="detail-section">
-                  <h4>完整解读</h4>
+                  <h4>{t("modal.full", lang)}</h4>
                   <p className="full-meaning">
                     {selectedCard.isReversed
-                      ? "逆位代表着挑战、阻碍或内在冲突，需要你特别关注这个方面的成长。"
-                      : "正位代表着顺利、和谐或外在机遇，是你当前可以积极利用的能量。"}
+                      ? t("modal.full.reversed", lang)
+                      : t("modal.full.upright", lang)}
                   </p>
                 </div>
               </div>
@@ -464,18 +488,17 @@ export default function Step4Result() {
       {/* 操作按钮 */}
       <div className="step-actions">
         <button type="button" className="btn-ghost" onClick={handleNewDivination}>
-          重新占卜
+          {t("result.reset", lang)}
         </button>
         <button type="button" className="btn-ghost" onClick={handleScreenshot} disabled={capturing || loadingAi}>
-          {capturing ? "生成中…" : "💾 保存结果"}
+          {capturing ? t("result.generating", lang) : t("result.save", lang)}
         </button>
-        
       </div>
 
       {/* 购买引导 */}
       <div style={{ textAlign: "center", marginTop: "1.5rem" }}>
         <p style={{ fontSize: "0.85rem", color: "#a89880", marginBottom: "0.75rem" }}>
-          喜欢这次解读？想要更深度的占卜服务
+          {t("result.more.pre", lang)}
         </p>
         <a
           href={PURCHASE_URL}
@@ -488,7 +511,7 @@ export default function Step4Result() {
             fontSize: "1rem", textDecoration: "none", letterSpacing: "0.05em",
           }}
         >
-          ✨ 还想占卜 →
+          {t("result.more", lang)}
         </a>
       </div>
     </div>
