@@ -9,7 +9,7 @@ import { t, getPositionLabel } from "../../lib/i18n";
 import { useLang } from "../../hooks/useLang";
 import type { TarotReadingRecord } from "../../types/tarot";
 
-const PURCHASE_URL = "https://xhslink.com/m/AiCdjbwJCUf";
+const PURCHASE_URL = "https://buymeacoffee.com/nanduo";
 
 // 将图片 URL 预加载为 base64 data URL
 // 对同源图片（如 qrcode）直接 fetch；对跨域图片尝试 fetch，失败则静默跳过
@@ -107,8 +107,7 @@ export default function Step4Result() {
     const imgEls = Array.from(
       screenshotRef.current.querySelectorAll<HTMLImageElement>("img")
     );
-    const qrcodeUrl = new URL("/images/tarot/qrcode.jpg", window.location.origin).href;
-    const allUrls = [...new Set([qrcodeUrl, ...imgEls.map((el) => el.src)])];
+    const allUrls = [...new Set(imgEls.map((el) => el.src))];
 
     // 2. 并行 fetch 转 base64（跨域失败的静默跳过）
     const imageMap = new Map<string, string>();
@@ -398,30 +397,6 @@ export default function Step4Result() {
               </div>
             </div>
           ))}
-        </div>
-
-        {/* 截图底部：小红书引流卡片 */}
-        <div style={{
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          marginTop: "1.5rem", paddingTop: "1rem",
-          borderTop: "1px solid rgba(255,255,255,0.08)", gap: "1rem",
-        }}>
-          <div>
-            <p style={{ fontSize: "0.8rem", color: "#c9a96e", margin: "0 0 0.25rem", fontWeight: 600 }}>
-              {t("result.xhs.title", lang)}
-            </p>
-            <p style={{ fontSize: "0.75rem", color: "#a89880", margin: 0 }}>
-              {t("result.xhs.sub", lang)}
-            </p>
-            <p style={{ fontSize: "0.7rem", color: "#6b5e4a", margin: "0.2rem 0 0" }}>
-              ID: 9541747431
-            </p>
-          </div>
-          <img
-            src="/images/tarot/qrcode.jpg"
-            alt="小红书二维码"
-            style={{ width: 80, height: 80, borderRadius: 8, flexShrink: 0 }}
-          />
         </div>
       </div>
       {/* ===== 截图区域结束 ===== */}
