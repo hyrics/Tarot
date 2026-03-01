@@ -135,6 +135,10 @@ export default function Step4Result() {
             img.src = b64;
           }
         });
+        // 4. 截图时隐藏带 screenshot-hide 的元素（如「查看完整解读」按钮）
+        clonedEl.querySelectorAll(".screenshot-hide").forEach((el) => {
+          (el as HTMLElement).style.display = "none";
+        });
       },
     });
   };
@@ -263,13 +267,16 @@ export default function Step4Result() {
       >
         {/* 顶部标题 */}
         <div style={{ textAlign: "center", marginBottom: "1.25rem" }}>
-          <p style={{ fontSize: "0.75rem", letterSpacing: "0.2em", color: "#c9a96e", margin: 0 }}>
+          <p style={{ fontSize: "1rem", letterSpacing: "0.3em", color: "#c9a96e", margin: 0 }}>
             ✦ {t("result.title", lang)} ✦
           </p>
           {question && (
-            <p style={{ fontSize: "1rem", color: "#e8e0d0", marginTop: "0.4rem", marginBottom: 0 }}>
-              {question}
-            </p>
+            <>
+              <p style={{ fontSize: "1.4rem", fontWeight: 700, color: "#e8e0d0", marginTop: "0.75rem", marginBottom: 0 }}>
+                {question}
+              </p>
+              <div style={{ width: 40, height: 2, background: "#c9a96e", margin: "0.75rem auto 0" }} />
+            </>
           )}
         </div>
 
@@ -383,7 +390,7 @@ export default function Step4Result() {
                   <span className="numerology-value">{card.nameEn ? (card.nameEn.length % 9 || 9) : "—"}</span>
                 </div>
                 <button
-                  className="detail-button"
+                  className="detail-button screenshot-hide"
                   onClick={(e) => { e.stopPropagation(); handleCardClick(card); }}
                 >
                   {t("result.card.detail", lang)}
