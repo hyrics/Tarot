@@ -34,6 +34,7 @@ const translations: Record<string, Record<Lang, string>> = {
   "emotion.lead":         { zh: "你一定有很多想分享的",               en: "You must have a lot on your mind" },
   "emotion.title":        { zh: "冷静一下",                         en: "Take a breath" },
   "emotion.subtitle":     { zh: "用几句短句概括你的心里话",           en: "Summarize what's on your mind in a few short phrases" },
+  "emotion.thanks.hint":  { zh: "也可以致谢一句话",                   en: "Or a sentence of thanks" },
   "emotion.word1":        { zh: "第一组词",                         en: "First phrase" },
   "emotion.word2":        { zh: "你的疑问",                         en: "Your question" },
   "emotion.word3":        { zh: "你的纠结",                         en: "Your dilemma" },

@@ -15,7 +15,12 @@ const PURCHASE_URL = "https://xhslink.com/m/AiCdjbwJCUf";
 // 对同源图片（如 qrcode）直接 fetch；对跨域图片尝试 fetch，失败则静默跳过
 async function fetchImageAsBase64(url: string): Promise<string | null> {
   try {
-    const resp = await fetch(url, { cache: "force-cache", mode: "cors" });
+    // OSS 图片走代理接口
+    const proxyUrl = url.startsWith("https://nanduo.oss-cn-beijing.aliyuncs.com/")
+      ? `/api/proxy?url=${encodeURIComponent(url)}`
+      : url;
+
+    const resp = await fetch(proxyUrl, { cache: "force-cache" });
     if (!resp.ok) return null;
     const blob = await resp.blob();
     return await new Promise<string>((resolve, reject) => {
@@ -25,7 +30,6 @@ async function fetchImageAsBase64(url: string): Promise<string | null> {
       reader.readAsDataURL(blob);
     });
   } catch {
-    // 跨域 CORS 未配置时 fetch 失败，静默跳过
     return null;
   }
 }
@@ -77,13 +81,11 @@ export default function Step4Result() {
   const [selectedCard, setSelectedCard] = useState<any>(null);
   const [saveMessage, setSaveMessage] = useState("");
   const [aiOverall, setAiOverall] = useState<string | null>(null);
-  const [typewriterLength, setTypewriterLength] = useState(0);
   const [loadingAi, setLoadingAi] = useState(false);
   const [capturing, setCapturing] = useState(false);
   const [phraseIndex, setPhraseIndex] = useState(0);
 
   const screenshotRef = useRef<HTMLDivElement>(null);
-  const typewriterIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // 轮换加载文案
   useEffect(() => {
@@ -221,7 +223,6 @@ export default function Step4Result() {
     if (!layout) return;
     setLoadingAi(true);
     setAiOverall(null);
-    setTypewriterLength(0);
     generateOverallInterpretationWithDeepSeek({
       spreadName: layout.name,
       question,
@@ -235,36 +236,9 @@ export default function Step4Result() {
         keywords: c.keywords || [],
       })),
     })
-      .then((text) => {
-        if (text) {
-          setAiOverall(text);
-          setTypewriterLength(0);
-        }
-      })
+      .then((text) => { if (text) setAiOverall(text); })
       .finally(() => setLoadingAi(false));
   }, [displayCards, selectedSpread, question]);
-
-  // 打字机效果：约 25 字/秒
-  useEffect(() => {
-    if (!aiOverall || aiOverall.length === 0) return;
-    const len = aiOverall.length;
-    const msPerChar = 40; // 1000/25
-    typewriterIntervalRef.current = setInterval(() => {
-      setTypewriterLength((prev) => {
-        if (prev >= len) {
-          if (typewriterIntervalRef.current) clearInterval(typewriterIntervalRef.current);
-          return len;
-        }
-        return prev + 1;
-      });
-    }, msPerChar);
-    return () => {
-      if (typewriterIntervalRef.current) {
-        clearInterval(typewriterIntervalRef.current);
-        typewriterIntervalRef.current = null;
-      }
-    };
-  }, [aiOverall]);
 
   return (
     <div className="step-content">
@@ -333,18 +307,16 @@ export default function Step4Result() {
               ))}
             </div>
           ) : aiOverall ? (
-            <div className="reading-content-new reading-typewriter">
-              {(() => {
-                const visible = aiOverall.slice(0, typewriterLength).replace(/\*\*/g, "");
-                return visible
-                  .split(/\n\n+/)
-                  .filter((p) => p.trim().length > 0)
-                  .map((para, i) => (
-                    <p key={i} className="reading-analysis">
-                      {para.trim()}
-                    </p>
-                  ));
-              })()}
+            <div className="reading-content-new">
+              {aiOverall
+                .replace(/\*\*/g, "")
+                .split(/\n\n+/)
+                .filter((p) => p.trim().length > 0)
+                .map((para, i) => (
+                  <p key={i} className="reading-analysis">
+                    {para.trim()}
+                  </p>
+                ))}
             </div>
           ) : (
             <div className="reading-content-new reading-loading">
@@ -353,11 +325,8 @@ export default function Step4Result() {
           )}
         </div>
 
-        {/* 牌卡列表（在截图内，二维码上方）；打字机开始后卡片缓缓浮现 */}
-        <div
-          className={`cards-result ${aiOverall && typewriterLength > 0 ? "cards-reveal" : ""}`}
-          style={{ marginTop: "1.5rem" }}
-        >
+        {/* 牌卡列表（在截图内，二维码上方） */}
+        <div className="cards-result" style={{ marginTop: "1.5rem" }}>
           {displayCards.map((card, index) => (
             <div
               key={index}

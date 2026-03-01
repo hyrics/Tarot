@@ -234,6 +234,7 @@ export default function Step1Emotion() {
               <React.Fragment key={i}>{line}{i === 0 && <br />}</React.Fragment>
             ))}
           </p>
+          <p className="emotion-thanks-hint">{t("emotion.thanks.hint", lang)}</p>
 
           <div className="emotion-inputs">
             <input

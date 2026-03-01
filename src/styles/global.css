@@ -3486,19 +3486,6 @@ body::after {
   }
 }
 
-/* 打字机阶段：卡片缓缓浮现 */
-.cards-result.cards-reveal .result-card {
-  opacity: 0;
-  animation: resultCardReveal 0.7s ease-out forwards;
-}
-.cards-result.cards-reveal .result-card:nth-child(1) { animation-delay: 0.2s; }
-.cards-result.cards-reveal .result-card:nth-child(2) { animation-delay: 0.45s; }
-.cards-result.cards-reveal .result-card:nth-child(3) { animation-delay: 0.7s; }
-@keyframes resultCardReveal {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
 .result-card {
   background: rgba(26, 31, 58, 0.4);
   border: 2px solid var(--border);
@@ -4526,8 +4513,17 @@ body::after {
   font-size: 1.05rem;
   color: var(--text-secondary);
   line-height: 1.7;
-  margin: 0 0 1.5rem;
+  margin: 0 0 0.5rem;
   animation: drawnFadeIn 0.6s ease-out 0.3s both;
+}
+
+.emotion-thanks-hint {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-style: italic;
+  color: var(--text-secondary);
+  opacity: 0.85;
+  margin: 0 0 1.5rem;
 }
 
 .emotion-inputs {
