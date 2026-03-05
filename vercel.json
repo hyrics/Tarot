@@ -2,6 +2,7 @@
   "buildCommand": "npm install && npx vite build",
   "outputDirectory": "dist",
   "rewrites": [
-      { "source": "/paranoid", "destination": "/paranoid/index.html" }
+    { "source": "/paranoid", "destination": "/paranoid/index.html" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
