@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>偏执矩阵测试 | 你的大脑有多警惕？</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --card: #1a1a26;
+    --border: #2a2a40;
+    --accent: #7c6aff;
+    --accent2: #ff6a9a;
+    --text: #e8e8f0;
+    --muted: #6666888;
+    --danger: #ff4466;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Serif SC', serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(124,106,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(124,106,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* INTRO */
+  #intro {
+    text-align: center;
+    padding: 60px 20px;
+    animation: fadeIn 0.8s ease;
+  }
+
+  .eye-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 32px;
+    position: relative;
+  }
+
+  .eye-icon svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 0 20px rgba(124,106,255,0.6));
+  }
+
+  h1 {
+    font-size: clamp(28px, 5vw, 42px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+    background: linear-gradient(135deg, #e8e8f0, #7c6aff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .subtitle {
+    font-size: 16px;
+    color: #888899;
+    margin-bottom: 40px;
+    line-height: 1.7;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .intro-tags {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+  }
+
+  .tag {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-family: 'Space Mono', monospace;
+    color: #888899;
+  }
+
+  .tag.accent { border-color: var(--accent); color: var(--accent); }
+
+  .start-btn {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none;
+    color: white;
+    padding: 16px 48px;
+    font-size: 17px;
+    font-family: 'Noto Serif SC', serif;
+    font-weight: 600;
+    border-radius: 4px;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 32px rgba(124,106,255,0.3);
+  }
+
+  .start-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(124,106,255,0.4);
+  }
+
+  /* PROGRESS */
+  .progress-bar-wrap {
+    margin-bottom: 40px;
+  }
+
+  .progress-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    font-family: 'Space Mono', monospace;
+    color: #666677;
+    margin-bottom: 8px;
+  }
+
+  .progress-track {
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+
+  /* QUESTION CARD */
+  #quiz { display: none; animation: fadeIn 0.5s ease; }
+
+  .question-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 40px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .question-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+  }
+
+  .dimension-label {
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .question-text {
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.6;
+    margin-bottom: 36px;
+    color: var(--text);
+  }
+
+  .scale-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .scale-option {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 18px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: var(--surface);
+  }
+
+  .scale-option:hover {
+    border-color: var(--accent);
+    background: rgba(124,106,255,0.05);
+  }
+
+  .scale-option.selected {
+    border-color: var(--accent);
+    background: rgba(124,106,255,0.12);
+  }
+
+  .scale-dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+  }
+
+  .scale-option.selected .scale-dot {
+    border-color: var(--accent);
+    background: var(--accent);
+    box-shadow: 0 0 8px rgba(124,106,255,0.5);
+  }
+
+  .scale-label {
+    font-size: 15px;
+    color: #aaaacc;
+  }
+
+  .scale-option.selected .scale-label { color: var(--text); }
+
+  .nav-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+  }
+
+  .nav-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: #888899;
+    padding: 10px 24px;
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .nav-btn:hover:not(:disabled) {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .nav-btn:disabled { opacity: 0.3; cursor: default; }
+
+  .next-btn {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+    font-weight: 700;
+  }
+
+  .next-btn:hover:not(:disabled) {
+    background: #9580ff;
+    border-color: #9580ff;
+    color: white;
+  }
+
+  /* RESULTS */
+  #results { display: none; animation: fadeIn 0.8s ease; }
+
+  .result-header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  .result-title {
+    font-size: 13px;
+    font-family: 'Space Mono', monospace;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .result-headline {
+    font-size: clamp(24px, 4vw, 36px);
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 12px;
+  }
+
+  .result-score-badge {
+    display: inline-block;
+    font-family: 'Space Mono', monospace;
+    font-size: 48px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+  }
+
+  .result-level {
+    font-size: 14px;
+    font-family: 'Space Mono', monospace;
+    color: #888899;
+  }
+
+  /* Radar Chart */
+  .radar-wrap {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 32px;
+    margin-bottom: 32px;
+    text-align: center;
+  }
+
+  .radar-title {
+    font-size: 12px;
+    font-family: 'Space Mono', monospace;
+    color: #666677;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+
+  canvas#radarChart {
+    max-width: 320px;
+    width: 100%;
+  }
+
+  /* Dimension bars */
+  .dimensions-grid {
+    display: grid;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .dim-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 24px;
+  }
+
+  .dim-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .dim-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .dim-score {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+  }
+
+  .dim-bar-track {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+
+  .dim-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 1s ease 0.3s;
+  }
+
+  .dim-desc {
+    font-size: 13px;
+    color: #666688;
+    line-height: 1.6;
+  }
+
+  /* Overall interpretation */
+  .interpretation {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 28px;
+    margin-bottom: 32px;
+  }
+
+  .interp-label {
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .interp-text {
+    font-size: 15px;
+    line-height: 1.8;
+    color: #bbbbdd;
+  }
+
+  .share-row {
+    text-align: center;
+    margin-top: 32px;
+  }
+
+  .share-text {
+    font-size: 13px;
+    color: #666688;
+    margin-bottom: 16px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .retry-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: #888899;
+    padding: 12px 32px;
+    font-family: 'Noto Serif SC', serif;
+    font-size: 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .retry-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 480px) {
+    .question-card { padding: 24px 20px; }
+    .question-text { font-size: 17px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- INTRO -->
+<div id="intro">
+  <div class="eye-icon">
+    <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="40" cy="40" rx="38" ry="24" stroke="#7c6aff" stroke-width="2" opacity="0.4"/>
+      <ellipse cx="40" cy="40" rx="28" ry="18" stroke="#7c6aff" stroke-width="1.5" opacity="0.6"/>
+      <circle cx="40" cy="40" r="10" fill="#7c6aff" opacity="0.8"/>
+      <circle cx="40" cy="40" r="5" fill="#ff6a9a"/>
+      <circle cx="43" cy="37" r="2" fill="white" opacity="0.6"/>
+    </svg>
+  </div>
+  <h1>偏执矩阵测试</h1>
+  <p class="subtitle">你有多警觉？还是多疑？<br>基于国际心理学研究的8维度偏执人格测量</p>
+  <div class="intro-tags">
+    <span class="tag accent">国外大学研究</span>
+    <span class="tag">40道题</span>
+    <span class="tag">约5分钟</span>
+    <span class="tag">8个维度</span>
+    <span class="tag">即时出结果</span>
+  </div>
+  <button class="start-btn" onclick="startQuiz()">开始测试</button>
+</div>
+
+<!-- QUIZ -->
+<div id="quiz">
+  <div class="progress-bar-wrap">
+    <div class="progress-meta">
+      <span id="q-counter">第 1 题 / 共 40 题</span>
+      <span id="q-percent">0%</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill" style="width:0%"></div>
+    </div>
+  </div>
+
+  <div class="question-card">
+    <div class="dimension-label" id="dimLabel"></div>
+    <div class="question-text" id="questionText"></div>
+    <div class="scale-wrap" id="scaleWrap"></div>
+  </div>
+
+  <div class="nav-row">
+    <button class="nav-btn" id="prevBtn" onclick="prevQ()" disabled>← 上一题</button>
+    <button class="nav-btn next-btn" id="nextBtn" onclick="nextQ()" disabled>下一题 →</button>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div id="results">
+  <div class="result-header">
+    <div class="result-title">测试完成 · 你的偏执矩阵报告</div>
+    <div class="result-score-badge" id="totalScoreDisplay"></div>
+    <div class="result-level" id="levelDisplay"></div>
+    <div class="result-headline" id="headlineDisplay"></div>
+  </div>
+
+  <div class="radar-wrap">
+    <div class="radar-title">八维度偏执图谱</div>
+    <canvas id="radarChart" width="320" height="320"></canvas>
+  </div>
+
+  <div class="dimensions-grid" id="dimensionsGrid"></div>
+
+  <div class="interpretation" id="interpretationBox">
+    <div class="interp-label">综合解读</div>
+    <div class="interp-text" id="interpText"></div>
+  </div>
+
+  <div class="share-row">
+    <div class="share-text">// 截图发给朋友，看看他们的偏执指数 //</div>
+    <button class="retry-btn" onclick="retryQuiz()">重新测试</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+const DIMENSIONS = [
+  { key: 'sus', name: '猜疑性', color: '#7c6aff', desc: '倾向于认为他人有隐藏动机或不诚实' },
+  { key: 'mis', name: '不信任感', color: '#ff6a9a', desc: '对他人的忠诚度和诚意反复产生怀疑' },
+  { key: 'def', name: '防御行为', color: '#6af0ff', desc: '对批评和攻击高度警觉，维持情感距离' },
+  { key: 'thr', name: '威胁感知', color: '#ffaa44', desc: '在模糊情境中高度警觉潜在的社会威胁' },
+  { key: 'soc', name: '社交戒备', color: '#44ffaa', desc: '在社交场合中倾向于保持距离和自我保护' },
+  { key: 'res', name: '怨恨倾向', color: '#ff4466', desc: '容易积累怨恨，难以释怀他人的冒犯' },
+  { key: 'pro', name: '投射思维', color: '#aa66ff', desc: '将自己的负面情绪或动机投射到他人身上' },
+  { key: 'cog', name: '认知固执', color: '#ffcc44', desc: '一旦形成判断，难以根据新信息改变看法' },
+];
+
+const QUESTIONS = [
+  // 猜疑性 (sus) x5
+  { dim: 'sus', text: '我经常觉得别人在背后议论我' },
+  { dim: 'sus', text: '当别人对我特别好时，我会想知道他们想要什么' },
+  { dim: 'sus', text: '我怀疑某些人表面上是朋友，私下却不喜欢我' },
+  { dim: 'sus', text: '在一个群体中，我会注意观察是否有人在针对我' },
+  { dim: 'sus', text: '即使是陌生人，我也会留意他们是否对我有不友好的意图' },
+  // 不信任感 (mis) x5
+  { dim: 'mis', text: '我不会轻易将重要的事情告诉别人，即使是朋友' },
+  { dim: 'mis', text: '我觉得大多数人只要有机会就会利用你' },
+  { dim: 'mis', text: '我经常质疑别人告诉我的事情是否属实' },
+  { dim: 'mis', text: '一旦有人骗过我一次，我就永远无法再信任他们' },
+  { dim: 'mis', text: '我很难相信别人真正关心我的感受' },
+  // 防御行为 (def) x5
+  { dim: 'def', text: '当我感觉受到批评时，我会立刻做出反应' },
+  { dim: 'def', text: '我很难接受负面反馈，哪怕是善意的' },
+  { dim: 'def', text: '我会主动保持情感距离以避免受伤' },
+  { dim: 'def', text: '当别人挑战我的观点时，我会感到被攻击' },
+  { dim: 'def', text: '我宁可先发制人，也不愿意被动地受到伤害' },
+  // 威胁感知 (thr) x5
+  { dim: 'thr', text: '在新环境中，我会第一时间评估可能的风险' },
+  { dim: 'thr', text: '我很容易察觉到别人情绪或行为中细微的负面信号' },
+  { dim: 'thr', text: '当事情出现不确定性时，我倾向于预期最坏的结果' },
+  { dim: 'thr', text: '我会把一些模糊的话语理解为潜在的威胁' },
+  { dim: 'thr', text: '我经常处于一种随时准备应对危险的状态' },
+  // 社交戒备 (soc) x5
+  { dim: 'soc', text: '在社交场合中，我很少完全放松下来' },
+  { dim: 'soc', text: '我会刻意控制自己透露给别人的个人信息' },
+  { dim: 'soc', text: '即使在亲密朋友面前，我也会保留一部分真实想法' },
+  { dim: 'soc', text: '加入一个新群体时，我会先观察很久再决定是否信任他们' },
+  { dim: 'soc', text: '我觉得完全对别人敞开心扉是危险的' },
+  // 怨恨倾向 (res) x5
+  { dim: 'res', text: '我很难忘记别人对我造成的伤害' },
+  { dim: 'res', text: '如果有人对我不公平，我会长时间记着这件事' },
+  { dim: 'res', text: '我觉得有些人欠我一个道歉，即使已经过去很久了' },
+  { dim: 'res', text: '当我受到不公平对待时，我会一直想着怎么扳回来' },
+  { dim: 'res', text: '我很难真心原谅那些曾经伤害过我的人' },
+  // 投射思维 (pro) x5
+  { dim: 'pro', text: '我有时会觉得别人的行为是针对我个人的，即使可能并非如此' },
+  { dim: 'pro', text: '当关系出现问题时，我倾向于认为是对方的责任' },
+  { dim: 'pro', text: '我会从别人的言行中发现他们不喜欢我的迹象' },
+  { dim: 'pro', text: '我有时候会把自己的担忧归结为别人的恶意' },
+  { dim: 'pro', text: '当我感到愤怒时，我通常觉得是别人造成的' },
+  // 认知固执 (cog) x5
+  { dim: 'cog', text: '一旦我对某人形成了看法，很难再改变' },
+  { dim: 'cog', text: '即使面对相反的证据，我也很难修正自己的判断' },
+  { dim: 'cog', text: '我更倾向于坚持自己的第一印象' },
+  { dim: 'cog', text: '我发现很难接受与自己信念相矛盾的信息' },
+  { dim: 'cog', text: '我通常认为自己对人的判断是正确的' },
+];
+
+const OPTIONS = [
+  { label: '完全不符合', value: 1 },
+  { label: '不太符合', value: 2 },
+  { label: '有时符合', value: 3 },
+  { label: '比较符合', value: 4 },
+  { label: '非常符合', value: 5 },
+];
+
+let current = 0;
+let answers = new Array(QUESTIONS.length).fill(null);
+
+function startQuiz() {
+  document.getElementById('intro').style.display = 'none';
+  document.getElementById('quiz').style.display = 'block';
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = QUESTIONS[current];
+  const dim = DIMENSIONS.find(d => d.key === q.dim);
+
+  document.getElementById('dimLabel').textContent = `维度：${dim.name}`;
+  document.getElementById('questionText').textContent = `${current + 1}. ${q.text}`;
+  document.getElementById('q-counter').textContent = `第 ${current + 1} 题 / 共 ${QUESTIONS.length} 题`;
+  const pct = Math.round((current / QUESTIONS.length) * 100);
+  document.getElementById('q-percent').textContent = pct + '%';
+  document.getElementById('progressFill').style.width = pct + '%';
+
+  const wrap = document.getElementById('scaleWrap');
+  wrap.innerHTML = '';
+  OPTIONS.forEach(opt => {
+    const el = document.createElement('div');
+    el.className = 'scale-option' + (answers[current] === opt.value ? ' selected' : '');
+    el.innerHTML = `<div class="scale-dot"></div><div class="scale-label">${opt.label}</div>`;
+    el.onclick = () => selectOption(opt.value);
+    wrap.appendChild(el);
+  });
+
+  document.getElementById('prevBtn').disabled = current === 0;
+  document.getElementById('nextBtn').disabled = answers[current] === null;
+
+  const nextBtn = document.getElementById('nextBtn');
+  if (current === QUESTIONS.length - 1) {
+    nextBtn.textContent = '查看结果 →';
+  } else {
+    nextBtn.textContent = '下一题 →';
+  }
+}
+
+function selectOption(value) {
+  answers[current] = value;
+  document.querySelectorAll('.scale-option').forEach((el, i) => {
+    el.classList.toggle('selected', OPTIONS[i].value === value);
+  });
+  document.getElementById('nextBtn').disabled = false;
+}
+
+function nextQ() {
+  if (answers[current] === null) return;
+  if (current < QUESTIONS.length - 1) {
+    current++;
+    renderQuestion();
+  } else {
+    showResults();
+  }
+}
+
+function prevQ() {
+  if (current > 0) { current--; renderQuestion(); }
+}
+
+function showResults() {
+  document.getElementById('quiz').style.display = 'none';
+  document.getElementById('results').style.display = 'block';
+
+  // Calculate scores per dimension
+  const scores = {};
+  DIMENSIONS.forEach(d => scores[d.key] = 0);
+  QUESTIONS.forEach((q, i) => { scores[q.dim] += answers[i] || 3; });
+  // Each dim has 5 questions, max 25
+  const total = Object.values(scores).reduce((a, b) => a + b, 0);
+  const maxTotal = 200;
+  const pct = Math.round((total / maxTotal) * 100);
+
+  document.getElementById('totalScoreDisplay').textContent = pct + '分';
+
+  let level, headline, interp;
+  if (pct <= 30) {
+    level = '偏执指数：极低';
+    headline = '你拥有高度的心理安全感';
+    interp = '你对他人保持着相当程度的信任，能够在不确定的情况下保持开放的心态。你很少将他人的行为解读为威胁，也不容易产生怨恨情绪。这种特质有助于建立深厚的人际关系，但也需要适度保持自我保护意识。';
+  } else if (pct <= 50) {
+    level = '偏执指数：正常范围';
+    headline = '你的警觉性处于健康水平';
+    interp = '你的偏执倾向处于正常范围。你能够在信任他人和保护自己之间找到平衡，在感受到真实威胁时会提高警觉，但不会无故将他人行为解读为恶意。这是一种较为成熟的社会适应方式。';
+  } else if (pct <= 70) {
+    level = '偏执指数：偏高';
+    headline = '你的内心有一道无形的防线';
+    interp = '你对潜在威胁相当敏感，倾向于在社交关系中保持较强的戒备心。这种特质可能源于过去的经历，帮助你避免受到伤害。但长期保持高度警觉也会消耗大量心理能量，并可能在无意中影响与他人的亲密关系。';
+  } else {
+    level = '偏执指数：显著偏高';
+    headline = '你的大脑始终处于战备状态';
+    interp = '你的偏执矩阵得分处于显著偏高区间。你在日常生活中会花费大量精力解读他人的意图，对背叛和伤害极度敏感。这种高度的警觉性可能让你感到疲惫，并影响你建立真正信任的关系。建议关注自己的心理状态，必要时与专业人士交流。';
+  }
+
+  document.getElementById('levelDisplay').textContent = level;
+  document.getElementById('headlineDisplay').textContent = headline;
+  document.getElementById('interpText').textContent = interp;
+
+  // Render dimension bars
+  const grid = document.getElementById('dimensionsGrid');
+  grid.innerHTML = '';
+  DIMENSIONS.forEach(dim => {
+    const raw = scores[dim.key];
+    const dimPct = Math.round((raw / 25) * 100);
+    const el = document.createElement('div');
+    el.className = 'dim-item';
+    el.innerHTML = `
+      <div class="dim-header">
+        <span class="dim-name">${dim.name}</span>
+        <span class="dim-score">${dimPct}%</span>
+      </div>
+      <div class="dim-bar-track">
+        <div class="dim-bar-fill" style="width:0%; background:${dim.color}" data-width="${dimPct}%"></div>
+      </div>
+      <div class="dim-desc">${dim.desc}</div>
+    `;
+    grid.appendChild(el);
+  });
+
+  setTimeout(() => {
+    document.querySelectorAll('.dim-bar-fill').forEach(el => {
+      el.style.width = el.dataset.width;
+    });
+  }, 100);
+
+  // Draw radar chart
+  setTimeout(() => drawRadar(scores), 200);
+}
+
+function drawRadar(scores) {
+  const canvas = document.getElementById('radarChart');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const cx = W / 2, cy = H / 2;
+  const R = Math.min(W, H) * 0.38;
+  const N = DIMENSIONS.length;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Grid
+  for (let r = 1; r <= 5; r++) {
+    ctx.beginPath();
+    for (let i = 0; i < N; i++) {
+      const angle = (i / N) * Math.PI * 2 - Math.PI / 2;
+      const x = cx + (R * r / 5) * Math.cos(angle);
+      const y = cy + (R * r / 5) * Math.sin(angle);
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.strokeStyle = 'rgba(124,106,255,0.15)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // Axes
+  for (let i = 0; i < N; i++) {
+    const angle = (i / N) * Math.PI * 2 - Math.PI / 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + R * Math.cos(angle), cy + R * Math.sin(angle));
+    ctx.strokeStyle = 'rgba(124,106,255,0.2)';
+    ctx.stroke();
+  }
+
+  // Data polygon
+  const dimKeys = DIMENSIONS.map(d => d.key);
+  ctx.beginPath();
+  dimKeys.forEach((key, i) => {
+    const val = scores[key] / 25;
+    const angle = (i / N) * Math.PI * 2 - Math.PI / 2;
+    const x = cx + R * val * Math.cos(angle);
+    const y = cy + R * val * Math.sin(angle);
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(124,106,255,0.2)';
+  ctx.fill();
+  ctx.strokeStyle = '#7c6aff';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Labels
+  ctx.font = '11px "Space Mono", monospace';
+  ctx.fillStyle = '#888899';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  DIMENSIONS.forEach((dim, i) => {
+    const angle = (i / N) * Math.PI * 2 - Math.PI / 2;
+    const lx = cx + (R + 28) * Math.cos(angle);
+    const ly = cy + (R + 28) * Math.sin(angle);
+    ctx.fillStyle = dim.color;
+    ctx.fillText(dim.name, lx, ly);
+  });
+}
+
+function retryQuiz() {
+  current = 0;
+  answers = new Array(QUESTIONS.length).fill(null);
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('intro').style.display = 'block';
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>

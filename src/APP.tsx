@@ -47,15 +47,6 @@ function App() {
                   {/* 占卜流程页面：单页应用 */}
                   <Route path="/divination" element={<DivinationPage />} />
                   
-                  {/* 社区页面 */}
-                  <Route path="/community" element={<div>社区页面 - 开发中...</div>} />
-                  
-                  {/* 历史记录页 */}
-                  <Route path="/history" element={<HistoryPage />} />
-                  
-                  {/* 个人资料页 */}
-                  <Route path="/profile" element={<ProfilePage />} />
-                  
                   {/* 兼容旧链接或默认跳转 */}
                   <Route path="/home" element={<Navigate to="/" replace />} />
                   <Route path="/draw" element={<Navigate to="/divination" replace />} />
